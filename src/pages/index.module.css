@@ -1,0 +1,21 @@
+.heroBanner {
+  padding: 4rem 0;
+  text-align: center;
+}
+
+.featureCard {
+  background: var(--ifm-card-background-color);
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: var(--ifm-shadow-md);
+  margin-bottom: 2rem;
+  transition: transform 0.2s ease;
+}
+
+.featureCard:hover {
+  transform: translateY(-4px);
+}
+
+.buttons {
+  margin-top: 2rem;
+}
