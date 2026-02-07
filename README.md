@@ -45,7 +45,7 @@ It includes:
 Everything is written in Markdown and organized for clarity and long‑term growth.
 
 ## Project Structure
-cybertrace/
+```cybertrace/
 ├── docs/                  Documentation pages
 ├── blog/                  Blog posts
 ├── src/                   Components, pages, CSS, theme overrides
@@ -53,7 +53,7 @@ cybertrace/
 ├── docusaurus.config.js   Main configuration
 ├── sidebars.js            Sidebar structure
 ├── package.json           Project metadata and scripts
-└── README.md              This file
+└── README.md              This file```
 
 ## 🛠️ Tech Stack
 
