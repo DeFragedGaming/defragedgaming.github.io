@@ -1,47 +1,33 @@
----
-sidebar_position: 1
----
+Welcome to CyberTrace
+CyberTrace is my centralized hub for cybersecurity research, tooling, documentation, and technical exploration.
+This space brings together everything I build, break, analyze, and refine as I grow as a security engineer.
+Whether it’s a project, a writeup, a methodology note, or a custom tool, CyberTrace keeps it organized, accessible, and evolving.
 
-# Tutorial Intro
+What You’ll Find Here
+Projects
+Hands‑on security engineering work — tools, experiments, prototypes, and long‑term builds.
+Writeups
+CTF solutions, vulnerability breakdowns, exploit analysis, and structured pentest‑style reports.
+Notes
+Methodology, references, cheat sheets, and personal knowledge that supports real‑world security work.
+Tools
+Scripts, utilities, automation, and custom security tooling.
 
-Let's discover **Docusaurus in less than 5 minutes**.
+Purpose of CyberTrace
+CyberTrace exists to:
+- Document my learning and growth in cybersecurity
+- Build a long‑term archive of technical work
+- Provide structure for future projects and research
+- Serve as a personal knowledge base I can expand indefinitely
+This is not a static site — it’s a living system that grows as I do.
 
-## Getting Started
+How to Navigate
+Use the sidebar to explore:
+- Projects → active and archived builds
+- Writeups → detailed analysis and walkthroughs
+- Notes → methodology and reference material
+- Tools → scripts and utilities
+Each section is designed to expand over time.
 
-Get started by **creating a new site**.
-
-Or **try Docusaurus immediately** with **[docusaurus.new](https://docusaurus.new)**.
-
-### What you'll need
-
-- [Node.js](https://nodejs.org/en/download/) version 20.0 or above:
-  - When installing Node.js, you are recommended to check all checkboxes related to dependencies.
-
-## Generate a new site
-
-Generate a new Docusaurus site using the **classic template**.
-
-The classic template will automatically be added to your project after you run the command:
-
-```bash
-npm init docusaurus@latest my-website classic
-```
-
-You can type this command into Command Prompt, Powershell, Terminal, or any other integrated terminal of your code editor.
-
-The command also installs all necessary dependencies you need to run Docusaurus.
-
-## Start your site
-
-Run the development server:
-
-```bash
-cd my-website
-npm run start
-```
-
-The `cd` command changes the directory you're working with. In order to work with your newly created Docusaurus site, you'll need to navigate the terminal there.
-
-The `npm run start` command builds your website locally and serves it through a development server, ready for you to view at http://localhost:3000/.
-
-Open `docs/intro.md` (this page) and edit some lines: the site **reloads automatically** and displays your changes.
+About the Author
+CyberTrace is created and maintained by Matthew Hammel, a security‑focused developer and analyst building toward mastery in offensive and defensive security
