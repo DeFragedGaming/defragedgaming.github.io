@@ -1,5 +1,5 @@
 /**
- @type {import('@docusaurus/plugin-content-docs').SidebarsConfig}
+ * @type {import('@docusaurus/plugin-content-docs').SidebarsConfig}
  */
 
 const sidebars = {
@@ -14,7 +14,6 @@ const sidebars = {
       label: 'Projects',
       items: [
         'projects/index',
-        'projects/example-project',
       ],
     },
     {
@@ -22,7 +21,6 @@ const sidebars = {
       label: 'Writeups',
       items: [
         'writeups/index',
-        'writeups/example-writeup',
       ],
     },
     {
@@ -30,7 +28,6 @@ const sidebars = {
       label: 'Notes',
       items: [
         'notes/index',
-        'notes/example-note',
       ],
     },
     {
@@ -38,7 +35,6 @@ const sidebars = {
       label: 'Tools',
       items: [
         'tools/index',
-        'tools/example-tool',
       ],
     },
   ],
