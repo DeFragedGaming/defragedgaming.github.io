@@ -30,13 +30,12 @@ const sidebars = {
         'notes/index',
       ],
     },
-    {
-  type: 'category',
+   {
+  type: 'link',
   label: 'Tools',
-  items: [
-    'tools/index',
-  ],
-},
+  href: '/tools',
+}
+
 
   ],
 };
