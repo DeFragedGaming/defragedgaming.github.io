@@ -30,11 +30,16 @@ const sidebars = {
         'notes/index',
       ],
     },
-   {
+      {
+        type: 'link',
+        label: 'Tools',
+        href: '/tools',
+  },
+      {
   type: 'link',
-  label: 'Tools',
-  href: '/tools',
-}
+  label: 'Labs',
+  href: '/labs',
+},
 
 
   ],
