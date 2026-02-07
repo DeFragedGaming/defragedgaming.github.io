@@ -44,7 +44,7 @@ It includes:
 - Experiments, prototypes, and learning material
 Everything is written in Markdown and organized for clarity and long‑term growth.
 
-# Project Structure
+## Project Structure
 cybertrace/
 ├── docs/                  Documentation pages
 ├── blog/                  Blog posts
