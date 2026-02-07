@@ -1,11 +1,179 @@
 import React, { useState } from "react";
 import Layout from "@theme/Layout";
 
-export default function MockBruteforceLab() {
-  // Track which phase is selected
-  const [phase, setPhase] = useState(1);
+type PhaseNumber = 1 | 2 | 3 | 4 | 5;
 
-  // Labels for the timeline
+type Tools = {
+  attacker: string[];
+  defender: string[];
+};
+
+const phaseTools: Record<PhaseNumber, Tools> = {
+  1: {
+    attacker: [
+      "Nmap (network scanning and service discovery)",
+      "Gobuster or similar tools (directory and endpoint enumeration)",
+      "Custom HTTP scanners (homegrown or scripted reconnaissance)",
+    ],
+    defender: [
+      "Web Application Firewall (WAF) for filtering suspicious requests",
+      "Reverse proxy logs (e.g., Nginx, Apache) for HTTP visibility",
+      "SIEM platforms (e.g., Splunk, Elastic Security) to correlate scan patterns",
+    ],
+  },
+  2: {
+    attacker: [
+      "Burp Suite (manual probing and login form analysis)",
+      "Selenium or headless browsers (automated form interaction)",
+      "Custom scripts for username enumeration and response analysis",
+    ],
+    defender: [
+      "Application logs (login endpoints, error messages, response codes)",
+      "Identity providers (IdP) logs for authentication attempts",
+      "SIEM rules to detect repeated failures from the same IP or user",
+    ],
+  },
+  3: {
+    attacker: [
+      "Hydra or similar password guessing frameworks",
+      "Burp Suite Intruder (high‑volume credential attempts)",
+      "Distributed or rotating IP infrastructure (e.g., proxies, VPNs)",
+    ],
+    defender: [
+      "Fail2Ban or similar tools for blocking abusive IPs",
+      "IDS/IPS solutions to detect brute‑force patterns",
+      "EDR/SIEM correlation rules for spikes in authentication failures",
+    ],
+  },
+  4: {
+    attacker: [
+      "Credential stuffing frameworks using leaked credential lists",
+      "Password spraying tools targeting common passwords",
+      "Automation scripts to monitor for successful logins",
+    ],
+    defender: [
+      "MFA solutions (e.g., app‑based, hardware tokens)",
+      "User behavior analytics (UBA/UEBA) platforms",
+      "Alerting rules for success‑after‑failure patterns and unusual locations",
+    ],
+  },
+  5: {
+    attacker: [
+      "Browser automation or scripts to navigate admin panels",
+      "Custom tools to trigger exports or configuration changes",
+      "Data exfiltration scripts targeting exports or backups",
+    ],
+    defender: [
+      "Role‑based access control (RBAC) and just‑in‑time access tools",
+      "DLP (Data Loss Prevention) solutions monitoring exports",
+      "Audit logs for admin actions, configuration changes, and exports",
+    ],
+  },
+};
+
+const globalAttackerTools: string[] = [
+  "Nmap — network and service discovery used during reconnaissance.",
+  "Gobuster/Dirbuster — directory and endpoint enumeration tools.",
+  "Burp Suite — web application testing and manual probing.",
+  "Hydra — high‑volume password guessing framework.",
+  "Custom automation scripts — often built with Python, Selenium, or HTTP libraries.",
+];
+
+const globalDefenderTools: string[] = [
+  "SIEM platforms (Splunk, Elastic Security, etc.) for centralized log analysis.",
+  "EDR solutions (e.g., CrowdStrike, Microsoft Defender for Endpoint) for endpoint visibility.",
+  "WAFs and reverse proxies for HTTP request inspection and filtering.",
+  "Fail2Ban and similar tools for blocking abusive IPs based on log patterns.",
+  "MFA and strong identity providers (Azure AD, Okta, etc.) to harden authentication.",
+  "DLP and audit logging to monitor sensitive actions and data exports.",
+];
+
+function randomIp(): string {
+  return `${Math.floor(Math.random() * 223) + 1}.${Math.floor(
+    Math.random() * 255
+  )}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`;
+}
+
+function randomTime(base: string, offsetSeconds: number): string {
+  // base format: "2025-02-07 03:12:00"
+  const date = new Date(base.replace(" ", "T") + "Z");
+  date.setSeconds(date.getSeconds() + offsetSeconds);
+  const pad = (n: number) => n.toString().padStart(2, "0");
+  const year = date.getUTCFullYear();
+  const month = pad(date.getUTCMonth() + 1);
+  const day = pad(date.getUTCDate());
+  const hours = pad(date.getUTCHours());
+  const minutes = pad(date.getUTCMinutes());
+  const seconds = pad(date.getUTCSeconds());
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+}
+
+function generateLogsForPhase(phase: PhaseNumber): string[] {
+  switch (phase) {
+    case 1:
+      return [
+        `${randomTime("2025-02-07 03:11:50", 5)} GET /login 200 UA=UnknownScanner/1.0`,
+        `${randomTime("2025-02-07 03:11:50", 6)} GET /admin 404 UA=UnknownScanner/1.0`,
+        `${randomTime("2025-02-07 03:11:50", 7)} GET /wp-login.php 404 UA=UnknownScanner/1.0`,
+      ];
+    case 2:
+      return [
+        `${randomTime("2025-02-07 03:12:00", 0)} LOGIN FAILED user=admin ip=${randomIp()}`,
+        `${randomTime("2025-02-07 03:12:00", 2)} LOGIN FAILED user=root ip=${randomIp()}`,
+        `${randomTime("2025-02-07 03:12:00", 5)} LOGIN FAILED user=test ip=${randomIp()}`,
+      ];
+    case 3:
+      return [
+        `${randomTime("2025-02-07 03:12:10", 0)} LOGIN FAILED user=admin ip=${randomIp()}`,
+        `${randomTime("2025-02-07 03:12:10", 0)} LOGIN FAILED user=admin ip=${randomIp()}`,
+        `${randomTime("2025-02-07 03:12:10", 1)} LOGIN FAILED user=admin ip=${randomIp()}`,
+        `${randomTime("2025-02-07 03:12:10", 1)} LOGIN FAILED user=admin ip=${randomIp()}`,
+        `${randomTime("2025-02-07 03:12:10", 2)} AUTH WARNING: Too many failures for user admin`,
+        `${randomTime("2025-02-07 03:12:10", 3)} LOGIN FAILED user=admin ip=${randomIp()}`,
+      ];
+    case 4:
+      return [
+        `${randomTime("2025-02-07 03:12:15", 0)} LOGIN SUCCESS user=admin ip=${randomIp()}`,
+        `${randomTime("2025-02-07 03:12:15", 1)} NOTICE: Successful login after 14 failed attempts`,
+        `${randomTime("2025-02-07 03:12:15", 1)} WARNING: Login from unusual IP location`,
+      ];
+    case 5:
+      return [
+        `${randomTime("2025-02-07 03:12:20", 0)} GET /admin/settings user=admin ip=${randomIp()}`,
+        `${randomTime("2025-02-07 03:12:20", 2)} GET /admin/export user=admin ip=${randomIp()}`,
+        `${randomTime("2025-02-07 03:12:20", 5)} WARNING: Privilege escalation attempt detected`,
+        `${randomTime("2025-02-07 03:12:20", 7)} NOTICE: Large data export initiated`,
+      ];
+    default:
+      return [];
+  }
+}
+
+function isSuspicious(line: string): boolean {
+  const keywords = [
+    "FAILED",
+    "WARNING",
+    "AUTH WARNING",
+    "NOTICE",
+    "Privilege escalation",
+    "export",
+    "Too many failures",
+    "Large data export",
+  ];
+  return keywords.some((k) => line.toLowerCase().includes(k.toLowerCase()));
+}
+
+export default function MockBruteforceLab() {
+  const [phase, setPhase] = useState<PhaseNumber>(1);
+  const [logsByPhase, setLogsByPhase] = useState<Record<PhaseNumber, string[]>>({
+    1: generateLogsForPhase(1),
+    2: generateLogsForPhase(2),
+    3: generateLogsForPhase(3),
+    4: generateLogsForPhase(4),
+    5: generateLogsForPhase(5),
+  });
+  const [highlight, setHighlight] = useState(false);
+
   const phases = [
     "Reconnaissance",
     "Probing",
@@ -14,7 +182,62 @@ export default function MockBruteforceLab() {
     "Post-Login Behavior",
   ];
 
-  // Render content for each phase
+  const handleGenerateLogs = () => {
+    setLogsByPhase((prev) => ({
+      ...prev,
+      [phase]: generateLogsForPhase(phase),
+    }));
+  };
+
+  const renderLogs = () => {
+    const lines = logsByPhase[phase] || [];
+    return (
+      <pre style={{ background: "#222", padding: "1rem", borderRadius: "6px" }}>
+        {lines.map((line, idx) => {
+          const suspicious = highlight && isSuspicious(line);
+          return (
+            <div
+              key={idx}
+              style={{
+                color: suspicious ? "#ff6b6b" : "#f5f5f5",
+                fontWeight: suspicious ? 600 : 400,
+              }}
+            >
+              {line}
+            </div>
+          );
+        })}
+      </pre>
+    );
+  };
+
+  const renderPhaseTools = () => {
+    const tools = phaseTools[phase];
+    return (
+      <div style={{ marginTop: "1.5rem" }}>
+        <h3>Common Tools in This Phase</h3>
+        <div style={{ display: "flex", gap: "2rem", flexWrap: "wrap" }}>
+          <div style={{ flex: "1 1 250px" }}>
+            <h4>Attacker Perspective (High‑Level)</h4>
+            <ul>
+              {tools.attacker.map((t, i) => (
+                <li key={i}>{t}</li>
+              ))}
+            </ul>
+          </div>
+          <div style={{ flex: "1 1 250px" }}>
+            <h4>Defender Perspective</h4>
+            <ul>
+              {tools.defender.map((t, i) => (
+                <li key={i}>{t}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderPhaseContent = () => {
     switch (phase) {
       case 1:
@@ -24,15 +247,12 @@ export default function MockBruteforceLab() {
             <p>
               In the reconnaissance phase, an attacker is simply trying to discover whether
               a login page exists and what endpoints are available. This is passive,
-              high‑level information gathering — not an attack.
+              high‑level information gathering — not an attack by itself, but it sets the
+              stage for later activity.
             </p>
 
             <h3>Mock Logs</h3>
-            <pre style={{ background: "#222", padding: "1rem", borderRadius: "6px" }}>
-{`2025-02-07 03:11:55 GET /login 200 UA=UnknownScanner/1.0
-2025-02-07 03:11:56 GET /admin 404 UA=UnknownScanner/1.0
-2025-02-07 03:11:57 GET /wp-login.php 404 UA=UnknownScanner/1.0`}
-            </pre>
+            {renderLogs()}
 
             <h3>Defender Insights</h3>
             <ul>
@@ -47,6 +267,8 @@ export default function MockBruteforceLab() {
               <li>Use a Web Application Firewall (WAF) to block scanners.</li>
               <li>Hide sensitive endpoints behind authentication.</li>
             </ul>
+
+            {renderPhaseTools()}
           </>
         );
 
@@ -61,11 +283,7 @@ export default function MockBruteforceLab() {
             </p>
 
             <h3>Mock Logs</h3>
-            <pre style={{ background: "#222", padding: "1rem", borderRadius: "6px" }}>
-{`2025-02-07 03:12:00 LOGIN FAILED user=admin ip=192.168.1.55
-2025-02-07 03:12:02 LOGIN FAILED user=root ip=192.168.1.55
-2025-02-07 03:12:05 LOGIN FAILED user=test ip=192.168.1.55`}
-            </pre>
+            {renderLogs()}
 
             <h3>Defender Insights</h3>
             <ul>
@@ -80,6 +298,8 @@ export default function MockBruteforceLab() {
               <li>Enable account lockout or throttling after repeated failures.</li>
               <li>Monitor for repeated login failures from the same IP.</li>
             </ul>
+
+            {renderPhaseTools()}
           </>
         );
 
@@ -94,14 +314,7 @@ export default function MockBruteforceLab() {
             </p>
 
             <h3>Mock Logs</h3>
-            <pre style={{ background: "#222", padding: "1rem", borderRadius: "6px" }}>
-{`2025-02-07 03:12:10 LOGIN FAILED user=admin ip=192.168.1.55
-2025-02-07 03:12:10 LOGIN FAILED user=admin ip=192.168.1.55
-2025-02-07 03:12:11 LOGIN FAILED user=admin ip=10.0.0.22
-2025-02-07 03:12:11 LOGIN FAILED user=admin ip=10.0.0.22
-2025-02-07 03:12:12 AUTH WARNING: Too many failures for user admin
-2025-02-07 03:12:13 LOGIN FAILED user=admin ip=172.16.0.9`}
-            </pre>
+            {renderLogs()}
 
             <h3>Defender Insights</h3>
             <ul>
@@ -118,6 +331,8 @@ export default function MockBruteforceLab() {
               <li>Deploy bot detection and behavioral analytics.</li>
               <li>Alert on spikes in authentication failures.</li>
             </ul>
+
+            {renderPhaseTools()}
           </>
         );
 
@@ -132,11 +347,7 @@ export default function MockBruteforceLab() {
             </p>
 
             <h3>Mock Logs</h3>
-            <pre style={{ background: "#222", padding: "1rem", borderRadius: "6px" }}>
-{`2025-02-07 03:12:15 LOGIN SUCCESS user=admin ip=192.168.1.55
-2025-02-07 03:12:16 NOTICE: Successful login after 14 failed attempts
-2025-02-07 03:12:16 WARNING: Login from unusual IP location`}
-            </pre>
+            {renderLogs()}
 
             <h3>Defender Insights</h3>
             <ul>
@@ -152,6 +363,8 @@ export default function MockBruteforceLab() {
               <li>Use geo‑velocity and impossible‑travel detection.</li>
               <li>Force password resets after suspicious authentication events.</li>
             </ul>
+
+            {renderPhaseTools()}
           </>
         );
 
@@ -167,12 +380,7 @@ export default function MockBruteforceLab() {
             </p>
 
             <h3>Mock Logs</h3>
-            <pre style={{ background: "#222", padding: "1rem", borderRadius: "6px" }}>
-{`2025-02-07 03:12:20 GET /admin/settings user=admin ip=192.168.1.55
-2025-02-07 03:12:22 GET /admin/export user=admin ip=192.168.1.55
-2025-02-07 03:12:25 WARNING: Privilege escalation attempt detected
-2025-02-07 03:12:27 NOTICE: Large data export initiated`}
-            </pre>
+            {renderLogs()}
 
             <h3>Defender Insights</h3>
             <ul>
@@ -189,6 +397,8 @@ export default function MockBruteforceLab() {
               <li>Alert on privilege escalation attempts.</li>
               <li>Implement data‑loss prevention (DLP) controls.</li>
             </ul>
+
+            {renderPhaseTools()}
           </>
         );
 
@@ -207,8 +417,8 @@ export default function MockBruteforceLab() {
 
         <p>
           This interactive lab walks through a safe, realistic simulation of a brute-force
-          attack chain. Each phase includes explanations, mock logs, defender insights, and
-          prevention strategies.
+          attack chain. Each phase includes explanations, mock logs, defender insights,
+          prevention strategies, and real‑world tools used by both attackers and defenders.
         </p>
 
         <p>Use the timeline below to explore each phase of the simulated attack.</p>
@@ -220,12 +430,13 @@ export default function MockBruteforceLab() {
             gap: "1rem",
             marginTop: "2rem",
             flexWrap: "wrap",
+            alignItems: "center",
           }}
         >
           {phases.map((label, index) => (
             <button
               key={index}
-              onClick={() => setPhase(index + 1)}
+              onClick={() => setPhase((index + 1) as PhaseNumber)}
               style={{
                 padding: "0.75rem 1rem",
                 borderRadius: "6px",
@@ -241,6 +452,40 @@ export default function MockBruteforceLab() {
           ))}
         </div>
 
+        {/* Controls */}
+        <div
+          style={{
+            marginTop: "1.5rem",
+            display: "flex",
+            gap: "1rem",
+            flexWrap: "wrap",
+            alignItems: "center",
+          }}
+        >
+          <button
+            onClick={handleGenerateLogs}
+            style={{
+              padding: "0.5rem 1rem",
+              borderRadius: "6px",
+              border: "1px solid #444",
+              background: "#333",
+              color: "white",
+              cursor: "pointer",
+            }}
+          >
+            Generate Logs for Current Phase
+          </button>
+
+          <label style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <input
+              type="checkbox"
+              checked={highlight}
+              onChange={(e) => setHighlight(e.target.checked)}
+            />
+            Highlight suspicious events
+          </label>
+        </div>
+
         {/* Phase Content */}
         <div
           style={{
@@ -253,6 +498,35 @@ export default function MockBruteforceLab() {
           <h2>{phases[phase - 1]}</h2>
           {renderPhaseContent()}
         </div>
+
+        {/* Global Tools Section */}
+        <section style={{ marginTop: "3rem" }}>
+          <h2>Common Tools Across the Entire Attack Chain</h2>
+          <p>
+            This section summarizes real‑world tools that appear across multiple phases of
+            the attack chain — both from the attacker and defender perspectives. The goal
+            is to help learners recognize names they will encounter in real environments.
+          </p>
+
+          <div style={{ display: "flex", gap: "2rem", flexWrap: "wrap", marginTop: "1rem" }}>
+            <div style={{ flex: "1 1 300px" }}>
+              <h3>Attacker‑Side (High‑Level Awareness)</h3>
+              <ul>
+                {globalAttackerTools.map((t, i) => (
+                  <li key={i}>{t}</li>
+                ))}
+              </ul>
+            </div>
+            <div style={{ flex: "1 1 300px" }}>
+              <h3>Defender‑Side (Operational Tools)</h3>
+              <ul>
+                {globalDefenderTools.map((t, i) => (
+                  <li key={i}>{t}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </section>
       </main>
     </Layout>
   );

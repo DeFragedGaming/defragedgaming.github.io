@@ -21,13 +21,13 @@ CyberTrace exists to:
 - Serve as a personal knowledge base I can expand indefinitely
 This is not a static site — it’s a living system that grows as I do.
 
-How to Navigate
+# How to Navigate
 Use the sidebar to explore:
 - Projects → active and archived builds
 - Writeups → detailed analysis and walkthroughs
 - Notes → methodology and reference material
 - Tools → scripts and utilities
-Each section is designed to expand over time.
+## Each section is designed to expand over time.
 
-About the Author
+# About the Author
 CyberTrace is created and maintained by Matthew Hammel, a security‑focused developer and analyst building toward mastery in offensive and defensive security
