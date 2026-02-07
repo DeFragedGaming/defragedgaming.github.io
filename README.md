@@ -1,41 +1,85 @@
-# Website
+# 📖 DeFragedGaming Documentation & Blog
 
-This website is built using [Docusaurus](https://docusaurus.io/), a modern static website generator.
+<div align="center">
 
-## Installation
+<!-- TODO: Add project logo (e.g., static/img/logo.svg) -->
 
-```bash
-yarn
-```
+[![GitHub stars](https://img.shields.io/github/stars/DeFragedGaming/defragedgaming.github.io?style=for-the-badge)](https://github.com/DeFragedGaming/defragedgaming.github.io/stargazers)
 
-## Local Development
+[![GitHub forks](https://img.shields.io/github/forks/DeFragedGaming/defragedgaming.github.io?style=for-the-badge)](https://github.com/DeFragedGaming/defragedgaming.github.io/network)
 
-```bash
-yarn start
-```
+[![GitHub issues](https://img.shields.io/github/issues/DeFragedGaming/defragedgaming.github.io?style=for-the-badge)](https://github.com/DeFragedGaming/defragedgaming.github.io/issues)
 
-This command starts a local development server and opens up a browser window. Most changes are reflected live without having to restart the server.
+[![GitHub license](https://img.shields.io/github/license/DeFragedGaming/defragedgaming.github.io?style=for-the-badge)](LICENSE)
 
-## Build
+[Live Site](https://defragedgaming.github.io)
 
-```bash
-yarn build
-```
+# CyberTrace
 
-This command generates static content into the `build` directory and can be served using any static contents hosting service.
+CyberTrace is the central hub for my cybersecurity work, including documentation, research notes, writeups, and tools. It’s built to be a long‑term, organized archive of everything I create as a security engineer and pentester.
+This repository contains the full source for the CyberTrace website, including documentation, blog posts, and custom components.
 
-## Deployment
+# Sections
+### Docs
+Structured documentation for projects, tools, writeups, and notes.
 
-Using SSH:
+### Blog
+Long‑form posts, updates, and research entries.
 
-```bash
-USE_SSH=true yarn deploy
-```
+### Tools
+Scripts, utilities, and security‑focused development work.
 
-Not using SSH:
+### Notes
+General cybersecurity knowledge, methodology, and references.
 
-```bash
-GIT_USER=<Your GitHub username> yarn deploy
-```
+# What CyberTrace Is
 
-If you are using GitHub pages for hosting, this command is a convenient way to build the website and push to the `gh-pages` branch.
+### CyberTrace is my personal cybersecurity knowledge base.
+It includes:
+- Documentation for projects and tools
+- Pentesting and CTF writeups
+- Research notes
+- Blog posts
+- Methodology references
+- Experiments, prototypes, and learning material
+Everything is written in Markdown and organized for clarity and long‑term growth.
+
+# Project Structure
+cybertrace/
+├── docs/                  Documentation pages
+├── blog/                  Blog posts
+├── src/                   Components, pages, CSS, theme overrides
+├── static/                Images and static assets
+├── docusaurus.config.js   Main configuration
+├── sidebars.js            Sidebar structure
+├── package.json           Project metadata and scripts
+└── README.md              This file
+
+## 🛠️ Tech Stack
+
+**Frontend:**
+
+![Docusaurus](https://img.shields.io/badge/Docusaurus-2.x-3C4858?style=for-the-badge&logo=docusaurus)
+
+![React](https://img.shields.io/badge/React-17.x-61DAFB?style=for-the-badge&logo=react&logoColor=white)
+
+![MDX](https://img.shields.io/badge/MDX-2.x-blueviolet?style=for-the-badge&logo=mdx)
+
+![CSS](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)
+
+**Runtime:**
+
+![Node.js](https://img.shields.io/badge/Node.js-16%2B-339933?style=for-the-badge&logo=node.js&logoColor=white)
+
+**Build Tools:**
+
+![Webpack](https://img.shields.io/badge/Webpack-5.x-1C88C6?style=for-the-badge&logo=webpack&logoColor=white)
+
+# Contributing
+This is a personal project, but improvements, fixes, and suggestions are welcome.
+Feel free to open an issue or submit a pull request.
+
+# Author
+CyberTrace is created and maintained by CyberTrace (Matthew Hammel).
+Security Engineer & Pentester.
+GitHub: https://github.com/defragedgaming
