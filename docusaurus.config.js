@@ -11,11 +11,11 @@ const config = {
     v4: true,
   },
 
-  url: 'https://cybertrace.github.io',
-  baseUrl: '/cybertrace.github.io',
+  url: 'https://defragedgaming.github.io',
+  baseUrl: '/',
 
   organizationName: 'defragedgaming', 
-  projectName: 'cybertrace.github.io',
+  projectName: 'defragedgaming.github.io',
   deploymentBranch: 'gh-pages',
   githubHost: 'github.com',
   
