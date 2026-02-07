@@ -53,7 +53,8 @@ Everything is written in Markdown and organized for clarity and long‑term grow
 ├── docusaurus.config.js   Main configuration
 ├── sidebars.js            Sidebar structure
 ├── package.json           Project metadata and scripts
-└── README.md              This file```
+└── README.md              This file
+```
 
 ## 🛠️ Tech Stack
 
