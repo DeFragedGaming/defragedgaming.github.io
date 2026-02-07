@@ -34,9 +34,7 @@ const sidebars = {
   type: 'category',
   label: 'Tools',
   items: [
-    'tools/hash-playground',
-    'tools/log-analyzer',
-    'tools/packet-parser',
+    'tools/index',
   ],
 },
 
