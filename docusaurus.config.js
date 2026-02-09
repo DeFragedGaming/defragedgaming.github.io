@@ -5,7 +5,7 @@ import {themes as prismThemes} from 'prism-react-renderer';
 const config = {
   title: 'CyberTrace',
   tagline: 'Security Engineering • Pentesting • All Things Cyber',
-  favicon: 'img/favicon.ico',
+  favicon: 'img/logo48x48.png',
 
   future: {
     v4: true,
@@ -55,7 +55,7 @@ const config = {
   ],
 
   themeConfig: ({
-    image: 'img/docusaurus-social-card.jpg',
+    image: 'img/logo.png',
     colorMode: {
       respectPrefersColorScheme: true,
     },
@@ -63,7 +63,7 @@ const config = {
       title: 'CyberTrace',
       logo: {
         alt: 'CyberTrace Logo',
-        src: 'img/logo.svg',
+        src: 'img/logo48x48.png',
       },
       items: [
         {
