@@ -6,7 +6,7 @@
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://defragedgaming.github.io/blog"/>
     <subtitle>CyberTrace Blog</subtitle>
-    <icon>https://defragedgaming.github.io/img/favicon.ico</icon>
+    <icon>https://defragedgaming.github.io/img/logo48x48.png</icon>
     <entry>
         <title type="html"><![CDATA[Welcome to the CyberTrace Blog]]></title>
         <id>https://defragedgaming.github.io/blog/welcome</id>
