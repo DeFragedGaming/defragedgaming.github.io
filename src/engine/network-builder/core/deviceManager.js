@@ -1,5 +1,3 @@
-
-
 export class DeviceManager {
   constructor(networkState) {
     this.state = networkState;
@@ -26,13 +24,8 @@ export class DeviceManager {
   }
 
   moveDevice(deviceId, x, y) {
-  const device = this.state.getDevice(deviceId);
-  if (!device) return;
-
-  device.x = x;
-  device.y = y;
-}
-
+    this.updateDevice(deviceId, { x, y });
+  }
 
   deleteDevice(deviceId) {
     this.state.removeDevice(deviceId);
@@ -44,5 +37,17 @@ export class DeviceManager {
 
   getDevices() {
     return this.state.getAllDevices();
+  }
+
+  createConnection(fromId, toId) {
+    this.state.addConnection(fromId, toId);
+  }
+
+  deleteConnection(fromId, toId) {
+    this.state.removeConnection(fromId, toId);
+  }
+
+  getConnections() {
+    return this.state.getConnections();
   }
 }

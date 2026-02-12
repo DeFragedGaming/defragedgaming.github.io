@@ -38,38 +38,45 @@ export class NetworkState {
     this.scenario = null;
   }
 
-  
   getDevice(deviceId) {
     return this.devices.get(deviceId) || null;
   }
 
-  
   addDevice(device) {
     this.devices.set(device.id, device);
   }
 
-  
   removeDevice(deviceId) {
     this.devices.delete(deviceId);
     this.connections = this.connections.filter(
-      (c) =>
-        c.from.deviceId !== deviceId &&
-        c.to.deviceId !== deviceId
+      (c) => c.from !== deviceId && c.to !== deviceId
     );
   }
 
- 
   getAllDevices() {
     return Array.from(this.devices.values());
   }
 
+  addConnection(fromId, toId) {
+    // prevent duplicates and self-connections
+    if (fromId === toId) return;
+    if (
+      this.connections.some(
+        (c) =>
+          (c.from === fromId && c.to === toId) ||
+          (c.from === toId && c.to === fromId)
+      )
+    ) {
+      return;
+    }
 
-  addConnection(connection) {
-    this.connections.push(connection);
+    this.connections.push({ from: fromId, to: toId });
   }
 
-  removeConnection(predicate) {
-    this.connections = this.connections.filter((c) => !predicate(c));
+  removeConnection(fromId, toId) {
+    this.connections = this.connections.filter(
+      (c) => !(c.from === fromId && c.to === toId)
+    );
   }
 
   getConnections() {

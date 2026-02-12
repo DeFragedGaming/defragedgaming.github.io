@@ -1,16 +1,12 @@
 import React, { useState, useEffect } from "react";
 import Canvas from "../../engine/network-builder/canvas/Canvas";
 import PanelWrapper from "../../engine/network-builder/panels/PanelWrapper";
-
 import { createNetworkBuilderEngine } from "../../engine/network-builder/index";
-
-// NEW IMPORTS
 import { ping, DeviceConfig } from "../../engine/network";
 
 export default function NetworkBuilderApp() {
   const [engine] = useState(() => createNetworkBuilderEngine());
   const [selectedDevice, setSelectedDevice] = useState(null);
-
   const [pingResult, setPingResult] = useState("");
 
   useEffect(() => {
@@ -23,6 +19,14 @@ export default function NetworkBuilderApp() {
 
     const result = ping(pc1, pc2);
     setPingResult(result);
+  };
+
+  const handleConnectModeToggle = () => {
+    window.dispatchEvent(
+      new CustomEvent("cybertrace-canvas-mode", {
+        detail: "toggle-connect-mode",
+      })
+    );
   };
 
   return (
@@ -45,6 +49,11 @@ export default function NetworkBuilderApp() {
               {pingResult}
             </p>
           )}
+        </div>
+
+        <div style={{ marginTop: "20px" }}>
+          <h3>Topology Tools</h3>
+          <button onClick={handleConnectModeToggle}>Connect Devices</button>
         </div>
       </div>
     </div>

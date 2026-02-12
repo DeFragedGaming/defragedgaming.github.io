@@ -3,6 +3,8 @@ import React, { useRef, useEffect, useState } from "react";
 export default function Canvas({ engine, onSelectDevice }) {
   const canvasRef = useRef(null);
   const [draggingId, setDraggingId] = useState(null);
+  const [connectMode, setConnectMode] = useState(false);
+  const [pendingConnection, setPendingConnection] = useState(null);
 
   // Prevent crash if engine isn't ready yet
   if (!engine || !engine.state) {
@@ -20,7 +22,6 @@ export default function Canvas({ engine, onSelectDevice }) {
     );
   }
 
-  // Redraw loop
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
@@ -29,7 +30,23 @@ export default function Canvas({ engine, onSelectDevice }) {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       const devices = engine.state.getAllDevices();
+      const connections = engine.state.getConnections();
 
+      // Draw connections first
+      connections.forEach((c) => {
+        const from = engine.state.getDevice(c.from);
+        const to = engine.state.getDevice(c.to);
+        if (!from || !to) return;
+
+        ctx.beginPath();
+        ctx.moveTo(from.x, from.y);
+        ctx.lineTo(to.x, to.y);
+        ctx.strokeStyle = "#888";
+        ctx.lineWidth = 3;
+        ctx.stroke();
+      });
+
+      // Draw devices
       devices.forEach((device) => {
         ctx.beginPath();
         ctx.arc(device.x, device.y, 25, 0, Math.PI * 2);
@@ -40,7 +57,30 @@ export default function Canvas({ engine, onSelectDevice }) {
         ctx.font = "14px Arial";
         ctx.textAlign = "center";
         ctx.fillText(device.name, device.x, device.y + 40);
+
+        // Highlight if in pending connection
+        if (pendingConnection === device.id) {
+          ctx.beginPath();
+          ctx.arc(device.x, device.y, 30, 0, Math.PI * 2);
+          ctx.strokeStyle = "#FFD700";
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
       });
+
+      // Optional: show connect mode hint
+      if (connectMode) {
+        ctx.fillStyle = "#fff";
+        ctx.font = "16px Arial";
+        ctx.textAlign = "left";
+        ctx.fillText(
+          pendingConnection
+            ? "Click another device to complete connection"
+            : "Click a device to start connection",
+          10,
+          20
+        );
+      }
     };
 
     let frame;
@@ -51,9 +91,8 @@ export default function Canvas({ engine, onSelectDevice }) {
 
     loop();
     return () => cancelAnimationFrame(frame);
-  }, [engine]);
+  }, [engine, connectMode, pendingConnection]);
 
-  // Correct coordinate scaling
   const getMousePos = (e) => {
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
@@ -80,24 +119,47 @@ export default function Canvas({ engine, onSelectDevice }) {
     const { x, y } = getMousePos(e);
     const device = findDeviceAt(x, y);
 
-    if (device) {
-      setDraggingId(device.id);
-      onSelectDevice(device);
+    if (!device) return;
+
+    if (connectMode) {
+      if (!pendingConnection) {
+        setPendingConnection(device.id);
+      } else {
+        engine.deviceManager.createConnection(pendingConnection, device.id);
+        setPendingConnection(null);
+        setConnectMode(false);
+      }
+      return;
     }
+
+    setDraggingId(device.id);
+    onSelectDevice(device);
   };
 
   const handleMouseMove = (e) => {
     if (!draggingId) return;
 
     const { x, y } = getMousePos(e);
-
-    // Update through engine manager
     engine.deviceManager.moveDevice(draggingId, x, y);
   };
 
   const handleMouseUp = () => {
     setDraggingId(null);
   };
+
+  // Expose a simple way to toggle connect mode via a custom event
+  // (optional, but we’ll wire a button in NetworkBuilderApp)
+  useEffect(() => {
+    const handler = (event) => {
+      if (event.detail === "toggle-connect-mode") {
+        setConnectMode((prev) => !prev);
+        setPendingConnection(null);
+      }
+    };
+
+    window.addEventListener("cybertrace-canvas-mode", handler);
+    return () => window.removeEventListener("cybertrace-canvas-mode", handler);
+  }, []);
 
   return (
     <canvas
@@ -108,7 +170,11 @@ export default function Canvas({ engine, onSelectDevice }) {
         width: "100%",
         height: "100%",
         background: "#000",
-        cursor: draggingId ? "grabbing" : "pointer",
+        cursor: connectMode
+          ? "crosshair"
+          : draggingId
+          ? "grabbing"
+          : "pointer",
       }}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
