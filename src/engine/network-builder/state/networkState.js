@@ -38,17 +38,17 @@ export class NetworkState {
     this.scenario = null;
   }
 
-  // REQUIRED BY DeviceManager
+  
   getDevice(deviceId) {
     return this.devices.get(deviceId) || null;
   }
 
-  // REQUIRED BY DeviceManager
+  
   addDevice(device) {
     this.devices.set(device.id, device);
   }
 
-  // REQUIRED BY DeviceManager
+  
   removeDevice(deviceId) {
     this.devices.delete(deviceId);
     this.connections = this.connections.filter(
@@ -58,12 +58,12 @@ export class NetworkState {
     );
   }
 
-  // REQUIRED BY Canvas + DeviceManager
+ 
   getAllDevices() {
     return Array.from(this.devices.values());
   }
 
-  // Optional but used by other engine parts
+
   addConnection(connection) {
     this.connections.push(connection);
   }

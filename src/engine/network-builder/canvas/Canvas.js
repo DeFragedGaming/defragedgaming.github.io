@@ -29,7 +29,7 @@ export default function Canvas({ engine, onSelectDevice }) {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       const devices = engine.state.getAllDevices();
-console.log("Devices:", engine.state.getAllDevices());
+
       devices.forEach((device) => {
         ctx.beginPath();
         ctx.arc(device.x, device.y, 25, 0, Math.PI * 2);
