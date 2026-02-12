@@ -1,25 +1,54 @@
-
 export class NetworkState {
   constructor() {
-    this.devices = new Map();      
-    this.connections = [];        
-    this.scenario = null;          
-  }
+    this.devices = new Map([
+      [
+        "pc1",
+        {
+          id: "pc1",
+          name: "PC1",
+          x: 200,
+          y: 200,
+          ip: "192.168.1.10",
+          subnetMask: "255.255.255.0",
+          gateway: null,
+          mac: "AA:AA:AA:AA:AA:01",
+        },
+      ],
+      [
+        "pc2",
+        {
+          id: "pc2",
+          name: "PC2",
+          x: 500,
+          y: 300,
+          ip: "192.168.1.20",
+          subnetMask: "255.255.255.0",
+          gateway: null,
+          mac: "AA:AA:AA:AA:AA:02",
+        },
+      ],
+    ]);
 
-  reset() {
-    this.devices.clear();
     this.connections = [];
     this.scenario = null;
   }
 
-  setScenario(scenario) {
-    this.scenario = scenario;
+  reset() {
+    this.connections = [];
+    this.scenario = null;
   }
 
+  // REQUIRED BY DeviceManager
+  getDevice(deviceId) {
+    return this.devices.get(deviceId) || null;
+  }
+
+  // REQUIRED BY DeviceManager
   addDevice(device) {
     this.devices.set(device.id, device);
   }
 
+  // REQUIRED BY DeviceManager
   removeDevice(deviceId) {
     this.devices.delete(deviceId);
     this.connections = this.connections.filter(
@@ -29,14 +58,12 @@ export class NetworkState {
     );
   }
 
-  getDevice(deviceId) {
-    return this.devices.get(deviceId) || null;
-  }
-
+  // REQUIRED BY Canvas + DeviceManager
   getAllDevices() {
     return Array.from(this.devices.values());
   }
 
+  // Optional but used by other engine parts
   addConnection(connection) {
     this.connections.push(connection);
   }

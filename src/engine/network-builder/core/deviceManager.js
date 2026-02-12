@@ -26,8 +26,13 @@ export class DeviceManager {
   }
 
   moveDevice(deviceId, x, y) {
-    this.updateDevice(deviceId, { x, y });
-  }
+  const device = this.state.getDevice(deviceId);
+  if (!device) return;
+
+  device.x = x;
+  device.y = y;
+}
+
 
   deleteDevice(deviceId) {
     this.state.removeDevice(deviceId);

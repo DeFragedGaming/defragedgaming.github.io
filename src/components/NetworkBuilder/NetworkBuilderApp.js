@@ -4,14 +4,26 @@ import PanelWrapper from "../../engine/network-builder/panels/PanelWrapper";
 
 import { createNetworkBuilderEngine } from "../../engine/network-builder/index";
 
+// NEW IMPORTS
+import { ping, DeviceConfig } from "../../engine/network";
+
 export default function NetworkBuilderApp() {
   const [engine] = useState(() => createNetworkBuilderEngine());
   const [selectedDevice, setSelectedDevice] = useState(null);
 
- 
+  const [pingResult, setPingResult] = useState("");
+
   useEffect(() => {
     engine.state.reset();
-  }, [engine]);
+  }, []);
+
+  const handlePing = () => {
+    const pc1 = engine.state.getDevice("pc1");
+    const pc2 = engine.state.getDevice("pc2");
+
+    const result = ping(pc1, pc2);
+    setPingResult(result);
+  };
 
   return (
     <div style={styles.wrapper}>
@@ -24,6 +36,16 @@ export default function NetworkBuilderApp() {
 
       <div style={styles.panelArea}>
         <PanelWrapper device={selectedDevice} engine={engine} />
+
+        <div style={{ marginTop: "20px" }}>
+          <h3>Networking Test</h3>
+          <button onClick={handlePing}>Ping PC1 → PC2</button>
+          {pingResult && (
+            <p style={{ marginTop: "10px", fontWeight: "bold" }}>
+              {pingResult}
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );
