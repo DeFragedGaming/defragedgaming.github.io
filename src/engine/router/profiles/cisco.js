@@ -4,6 +4,9 @@ const ciscoProfile = {
   shortName: "Cisco",
   interfacePrefix: "GigabitEthernet",
 
+  interfaces: [],
+  routes: [],
+
   makeInterfaceName(index) {
     return `GigabitEthernet0/${index}`;
   },
@@ -14,12 +17,8 @@ const ciscoProfile = {
 
   formatRoute(route) {
     const { destination, mask, nextHop, viaInterface } = route;
-    if (nextHop) {
-      return `S ${destination}/${mask} via ${nextHop}`;
-    }
-    if (viaInterface) {
-      return `C ${destination}/${mask} is directly connected, ${viaInterface}`;
-    }
+    if (nextHop) return `S ${destination}/${mask} via ${nextHop}`;
+    if (viaInterface) return `C ${destination}/${mask} is directly connected, ${viaInterface}`;
     return `S ${destination}/${mask}`;
   },
 

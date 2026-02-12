@@ -1,20 +1,22 @@
 import React, { useState } from "react";
 import Canvas from "../../engine/network-builder/canvas/Canvas.js";
-
 import { listRouterProfiles } from "../../engine/router/profiles/index.js";
 
 export default function NetworkBuilderApp({ engine }) {
   const [selectedDevice, setSelectedDevice] = useState(null);
   const [routerVendor, setRouterVendor] = useState("generic");
 
-  const profiles = listRouterProfiles();
+  const rawProfiles = listRouterProfiles();
+  const profiles = Array.isArray(rawProfiles) ? rawProfiles : [];
 
   const addPC = () => {
+    if (!engine) return;
     const id = "pc" + (engine.state.getAllDevices().length + 1);
     engine.deviceManager.createPC(id, 200, 200);
   };
 
   const addRouter = () => {
+    if (!engine) return;
     const id = "r" + (engine.state.getAllDevices().length + 1);
     engine.deviceManager.createRouter(id, 300, 200, routerVendor);
   };
@@ -112,10 +114,7 @@ export default function NetworkBuilderApp({ engine }) {
 
         <h3>Device Config</h3>
         {selectedDevice ? (
-          <engine.ui.DeviceConfigPanel
-            device={selectedDevice}
-            engine={engine}
-          />
+          <engine.ui.DeviceConfigPanel device={selectedDevice} engine={engine} />
         ) : (
           <p style={{ color: "#aaa" }}>Select a device</p>
         )}

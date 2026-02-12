@@ -4,8 +4,11 @@ const mikrotikProfile = {
   shortName: "MikroTik",
   interfacePrefix: "ether",
 
+  interfaces: [],
+  routes: [],
+
   makeInterfaceName(index) {
-    return `ether${index + 1}`;
+    return `ether${index}`;
   },
 
   formatInterfaceLabel(iface) {
@@ -14,14 +17,11 @@ const mikrotikProfile = {
 
   formatRoute(route) {
     const { destination, mask, nextHop } = route;
-    if (nextHop) {
-      return `${destination}/${mask} via ${nextHop}`;
-    }
-    return `${destination}/${mask} reachable`;
+    return `${destination}/${mask} via ${nextHop}`;
   },
 
   formatRoutingLog({ routerName, ifaceName, nextHop, targetIp }) {
-    return `${routerName} ${ifaceName} → next hop ${nextHop || targetIp}`;
+    return `${routerName} ${ifaceName} → routing to ${nextHop || targetIp}`;
   },
 };
 

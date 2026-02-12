@@ -24,7 +24,6 @@ export class DeviceManager {
 
     const updated = { ...existing, ...newData };
 
-    // Ensure router defaults stay intact
     if (updated.type === "router") {
       updated.profile = updated.profile || "generic";
       updated.interfaces = updated.interfaces || [];

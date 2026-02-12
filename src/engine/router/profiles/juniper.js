@@ -4,6 +4,9 @@ const juniperProfile = {
   shortName: "Juniper",
   interfacePrefix: "ge-0/0",
 
+  interfaces: [],
+  routes: [],
+
   makeInterfaceName(index) {
     return `ge-0/0/${index}`;
   },
@@ -13,15 +16,14 @@ const juniperProfile = {
   },
 
   formatRoute(route) {
-    const { destination, mask, nextHop } = route;
-    if (nextHop) {
-      return `${destination}/${mask} static via ${nextHop}`;
-    }
-    return `${destination}/${mask} direct`;
+    const { destination, mask, nextHop, viaInterface } = route;
+    if (nextHop) return `S ${destination}/${mask} next-hop ${nextHop}`;
+    if (viaInterface) return `C ${destination}/${mask} directly connected via ${viaInterface}`;
+    return `S ${destination}/${mask}`;
   },
 
   formatRoutingLog({ routerName, ifaceName, nextHop, targetIp }) {
-    return `${routerName} ${ifaceName} forwarding to ${nextHop || targetIp}`;
+    return `${routerName} ${ifaceName} → forwarding to ${nextHop || targetIp}`;
   },
 };
 

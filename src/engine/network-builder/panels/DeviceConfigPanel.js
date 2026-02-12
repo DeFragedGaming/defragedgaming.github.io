@@ -2,12 +2,27 @@ import React, { useState, useEffect } from "react";
 import { listRouterProfiles, getRouterProfile } from "../../router/profiles/index.js";
 
 export default function DeviceConfigPanel({ device, engine }) {
-  const [form, setForm] = useState({});
-  const profiles = listRouterProfiles();
+  const profiles = listRouterProfiles() || [];
+
+  const [form, setForm] = useState({
+    interfaces: [],
+    routes: [],
+  });
+
+  // Ensure safe defaults
+  const safeDevice = {
+    ...device,
+    interfaces: Array.isArray(device?.interfaces) ? device.interfaces : [],
+    routes: Array.isArray(device?.routes) ? device.routes : [],
+  };
 
   useEffect(() => {
     if (device) {
-      setForm({ ...device });
+      setForm({
+        ...safeDevice,
+        interfaces: [...safeDevice.interfaces],
+        routes: [...safeDevice.routes],
+      });
     }
   }, [device]);
 
@@ -17,6 +32,11 @@ export default function DeviceConfigPanel({ device, engine }) {
 
   const updateDevice = (updates) => {
     const newData = { ...form, ...updates };
+
+    // Always enforce safe arrays
+    newData.interfaces = Array.isArray(newData.interfaces) ? newData.interfaces : [];
+    newData.routes = Array.isArray(newData.routes) ? newData.routes : [];
+
     setForm(newData);
     engine.deviceManager.updateDevice(device.id, newData);
   };
@@ -129,10 +149,7 @@ export default function DeviceConfigPanel({ device, engine }) {
 
     const addRoute = () => {
       updateDevice({
-        routes: [
-          ...form.routes,
-          { destination: "", mask: "", nextHop: "" },
-        ],
+        routes: [...form.routes, { destination: "", mask: "", nextHop: "" }],
       });
     };
 
@@ -163,7 +180,7 @@ export default function DeviceConfigPanel({ device, engine }) {
         {/* Interfaces */}
         <h3 style={{ marginTop: "20px", marginBottom: "10px" }}>Interfaces</h3>
 
-        {form.interfaces.map((iface, index) => (
+        {(form.interfaces || []).map((iface, index) => (
           <div
             key={index}
             style={{
@@ -178,9 +195,7 @@ export default function DeviceConfigPanel({ device, engine }) {
               <input
                 style={inputStyle}
                 value={iface.name}
-                onChange={(e) =>
-                  updateInterface(index, { name: e.target.value })
-                }
+                onChange={(e) => updateInterface(index, { name: e.target.value })}
               />
             </div>
 
@@ -189,9 +204,7 @@ export default function DeviceConfigPanel({ device, engine }) {
               <input
                 style={inputStyle}
                 value={iface.ip}
-                onChange={(e) =>
-                  updateInterface(index, { ip: e.target.value })
-                }
+                onChange={(e) => updateInterface(index, { ip: e.target.value })}
               />
             </div>
 
@@ -211,9 +224,7 @@ export default function DeviceConfigPanel({ device, engine }) {
               <input
                 style={inputStyle}
                 value={iface.mac}
-                onChange={(e) =>
-                  updateInterface(index, { mac: e.target.value })
-                }
+                onChange={(e) => updateInterface(index, { mac: e.target.value })}
               />
             </div>
 
@@ -250,11 +261,9 @@ export default function DeviceConfigPanel({ device, engine }) {
         </button>
 
         {/* Routing Table */}
-        <h3 style={{ marginTop: "20px", marginBottom: "10px" }}>
-          Routing Table
-        </h3>
+        <h3 style={{ marginTop: "20px", marginBottom: "10px" }}>Routing Table</h3>
 
-        {form.routes.map((route, index) => (
+        {(form.routes || []).map((route, index) => (
           <div
             key={index}
             style={{
@@ -340,8 +349,15 @@ export default function DeviceConfigPanel({ device, engine }) {
 
 // Utility for MAC generation
 function randomMac() {
-  return "AA:AA:AA:" + [...Array(3)]
-    .map(() => Math.floor(Math.random() * 256).toString(16).padStart(2, "0"))
-    .join(":")
-    .toUpperCase();
+  return (
+    "AA:AA:AA:" +
+    [...Array(3)]
+      .map(() =>
+        Math.floor(Math.random() * 256)
+          .toString(16)
+          .padStart(2, "0")
+      )
+      .join(":")
+      .toUpperCase()
+  );
 }

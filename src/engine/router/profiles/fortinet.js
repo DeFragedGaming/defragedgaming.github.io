@@ -4,8 +4,11 @@ const fortinetProfile = {
   shortName: "Fortinet",
   interfacePrefix: "port",
 
+  interfaces: [],
+  routes: [],
+
   makeInterfaceName(index) {
-    return `port${index + 1}`;
+    return `port${index}`;
   },
 
   formatInterfaceLabel(iface) {
@@ -14,14 +17,11 @@ const fortinetProfile = {
 
   formatRoute(route) {
     const { destination, mask, nextHop } = route;
-    if (nextHop) {
-      return `${destination}/${mask} via ${nextHop}`;
-    }
-    return `${destination}/${mask}`;
+    return `S ${destination}/${mask} via ${nextHop}`;
   },
 
   formatRoutingLog({ routerName, ifaceName, nextHop, targetIp }) {
-    return `${routerName} ${ifaceName} forwarding packet to ${nextHop || targetIp}`;
+    return `${routerName} ${ifaceName} → forwarding to ${nextHop || targetIp}`;
   },
 };
 

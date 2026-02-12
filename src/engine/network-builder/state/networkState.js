@@ -57,7 +57,6 @@ export class NetworkState {
   }
 
   addDevice(device) {
-    // Apply router defaults safely
     if (device.type === "router") {
       device.profile = device.profile || "generic";
       device.interfaces = device.interfaces || [];

@@ -2,10 +2,13 @@ const genericProfile = {
   id: "generic",
   name: "Generic Router",
   shortName: "Generic",
-  interfacePrefix: "if",
+  interfacePrefix: "eth",
+
+  interfaces: [],
+  routes: [],
 
   makeInterfaceName(index) {
-    return `if${index + 1}`;
+    return `eth${index}`;
   },
 
   formatInterfaceLabel(iface) {
@@ -14,14 +17,11 @@ const genericProfile = {
 
   formatRoute(route) {
     const { destination, mask, nextHop } = route;
-    if (nextHop) {
-      return `${destination}/${mask} via ${nextHop}`;
-    }
-    return `${destination}/${mask}`;
+    return `${destination}/${mask} via ${nextHop}`;
   },
 
   formatRoutingLog({ routerName, ifaceName, nextHop, targetIp }) {
-    return `${routerName} ${ifaceName} forwarding to ${nextHop || targetIp}`;
+    return `${routerName} ${ifaceName} → forwarding to ${nextHop || targetIp}`;
   },
 };
 

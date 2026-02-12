@@ -1,11 +1,11 @@
-import cisco from "./cisco";
-import juniper from "./juniper";
-import mikrotik from "./mikrotik";
-import fortinet from "./fortinet";
-import paloalto from "./paloalto";
-import ubiquiti from "./ubiquiti";
-import vyos from "./vyos";
-import generic from "./generic";
+import cisco from "./cisco.js";
+import juniper from "./juniper.js";
+import mikrotik from "./mikrotik.js";
+import fortinet from "./fortinet.js";
+import paloalto from "./paloalto.js";
+import ubiquiti from "./ubiquiti.js";
+import vyos from "./vyos.js";
+import generic from "./generic.js";
 
 const profiles = {
   cisco,

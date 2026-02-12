@@ -1,11 +1,14 @@
-const paloAltoProfile = {
+const paloaltoProfile = {
   id: "paloalto",
-  name: "Palo Alto PAN-OS",
+  name: "Palo Alto PAN‑OS",
   shortName: "Palo Alto",
-  interfacePrefix: "ethernet1",
+  interfacePrefix: "ethernet",
+
+  interfaces: [],
+  routes: [],
 
   makeInterfaceName(index) {
-    return `ethernet1/${index + 1}`;
+    return `ethernet${index}`;
   },
 
   formatInterfaceLabel(iface) {
@@ -14,15 +17,12 @@ const paloAltoProfile = {
 
   formatRoute(route) {
     const { destination, mask, nextHop } = route;
-    if (nextHop) {
-      return `${destination}/${mask} via ${nextHop}`;
-    }
-    return `${destination}/${mask}`;
+    return `${destination}/${mask} → ${nextHop}`;
   },
 
   formatRoutingLog({ routerName, ifaceName, nextHop, targetIp }) {
-    return `${routerName} ${ifaceName} forwarding to ${nextHop || targetIp}`;
+    return `${routerName} ${ifaceName} → forwarding to ${nextHop || targetIp}`;
   },
 };
 
-export default paloAltoProfile;
+export default paloaltoProfile;
