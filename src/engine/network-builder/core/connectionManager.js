@@ -1,5 +1,3 @@
-
-
 export class ConnectionManager {
   constructor(networkState) {
     this.state = networkState;

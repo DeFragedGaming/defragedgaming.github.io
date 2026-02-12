@@ -5,6 +5,7 @@ export class NetworkState {
         "pc1",
         {
           id: "pc1",
+          type: "pc",
           name: "PC1",
           x: 200,
           y: 200,
@@ -18,6 +19,7 @@ export class NetworkState {
         "pc2",
         {
           id: "pc2",
+          type: "pc",
           name: "PC2",
           x: 500,
           y: 300,
@@ -42,7 +44,26 @@ export class NetworkState {
     return this.devices.get(deviceId) || null;
   }
 
+  getDeviceByIp(ip) {
+    for (const device of this.devices.values()) {
+      if (device.ip === ip) return device;
+      if (device.type === "router") {
+        for (const iface of device.interfaces || []) {
+          if (iface.ip === ip) return device;
+        }
+      }
+    }
+    return null;
+  }
+
   addDevice(device) {
+    // Apply router defaults safely
+    if (device.type === "router") {
+      device.profile = device.profile || "generic";
+      device.interfaces = device.interfaces || [];
+      device.routes = device.routes || [];
+    }
+
     this.devices.set(device.id, device);
   }
 
@@ -58,8 +79,8 @@ export class NetworkState {
   }
 
   addConnection(fromId, toId) {
-    // prevent duplicates and self-connections
     if (fromId === toId) return;
+
     if (
       this.connections.some(
         (c) =>

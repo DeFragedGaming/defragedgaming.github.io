@@ -6,7 +6,6 @@ export default function Canvas({ engine, onSelectDevice }) {
   const [connectMode, setConnectMode] = useState(false);
   const [pendingConnection, setPendingConnection] = useState(null);
 
-  // Prevent crash if engine isn't ready yet
   if (!engine || !engine.state) {
     return (
       <canvas
@@ -26,13 +25,45 @@ export default function Canvas({ engine, onSelectDevice }) {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
 
+    const drawDevice = (device) => {
+      if (device.type === "router") {
+        // Router: square
+        ctx.fillStyle = "#3A8FFF";
+        ctx.fillRect(device.x - 25, device.y - 25, 50, 50);
+
+        ctx.fillStyle = "#fff";
+        ctx.font = "14px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText(device.name, device.x, device.y + 40);
+      } else {
+        // PC: circle
+        ctx.beginPath();
+        ctx.arc(device.x, device.y, 25, 0, Math.PI * 2);
+        ctx.fillStyle = "#4CAF50";
+        ctx.fill();
+
+        ctx.fillStyle = "#fff";
+        ctx.font = "14px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText(device.name, device.x, device.y + 40);
+      }
+
+      if (pendingConnection === device.id) {
+        ctx.beginPath();
+        ctx.arc(device.x, device.y, 30, 0, Math.PI * 2);
+        ctx.strokeStyle = "#FFD700";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+    };
+
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       const devices = engine.state.getAllDevices();
       const connections = engine.state.getConnections();
 
-      // Draw connections first
+      // Draw connections
       connections.forEach((c) => {
         const from = engine.state.getDevice(c.from);
         const to = engine.state.getDevice(c.to);
@@ -47,28 +78,8 @@ export default function Canvas({ engine, onSelectDevice }) {
       });
 
       // Draw devices
-      devices.forEach((device) => {
-        ctx.beginPath();
-        ctx.arc(device.x, device.y, 25, 0, Math.PI * 2);
-        ctx.fillStyle = "#4CAF50";
-        ctx.fill();
+      devices.forEach(drawDevice);
 
-        ctx.fillStyle = "#fff";
-        ctx.font = "14px Arial";
-        ctx.textAlign = "center";
-        ctx.fillText(device.name, device.x, device.y + 40);
-
-        // Highlight if in pending connection
-        if (pendingConnection === device.id) {
-          ctx.beginPath();
-          ctx.arc(device.x, device.y, 30, 0, Math.PI * 2);
-          ctx.strokeStyle = "#FFD700";
-          ctx.lineWidth = 2;
-          ctx.stroke();
-        }
-      });
-
-      // Optional: show connect mode hint
       if (connectMode) {
         ctx.fillStyle = "#fff";
         ctx.font = "16px Arial";
@@ -111,7 +122,7 @@ export default function Canvas({ engine, onSelectDevice }) {
     return devices.find((d) => {
       const dx = x - d.x;
       const dy = y - d.y;
-      return Math.sqrt(dx * dx + dy * dy) < 25;
+      return Math.sqrt(dx * dx + dy * dy) < 30;
     });
   };
 
@@ -147,8 +158,6 @@ export default function Canvas({ engine, onSelectDevice }) {
     setDraggingId(null);
   };
 
-  // Expose a simple way to toggle connect mode via a custom event
-  // (optional, but we’ll wire a button in NetworkBuilderApp)
   useEffect(() => {
     const handler = (event) => {
       if (event.detail === "toggle-connect-mode") {

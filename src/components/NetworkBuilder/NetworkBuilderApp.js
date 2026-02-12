@@ -1,27 +1,25 @@
-import React, { useState, useEffect } from "react";
-import Canvas from "../../engine/network-builder/canvas/Canvas";
-import PanelWrapper from "../../engine/network-builder/panels/PanelWrapper";
-import { createNetworkBuilderEngine } from "../../engine/network-builder/index";
-import { ping, DeviceConfig } from "../../engine/network";
+import React, { useState } from "react";
+import Canvas from "../../engine/network-builder/canvas/Canvas.js";
 
-export default function NetworkBuilderApp() {
-  const [engine] = useState(() => createNetworkBuilderEngine());
+import { listRouterProfiles } from "../../engine/router/profiles/index.js";
+
+export default function NetworkBuilderApp({ engine }) {
   const [selectedDevice, setSelectedDevice] = useState(null);
-  const [pingResult, setPingResult] = useState("");
+  const [routerVendor, setRouterVendor] = useState("generic");
 
-  useEffect(() => {
-    engine.state.reset();
-  }, []);
+  const profiles = listRouterProfiles();
 
-  const handlePing = () => {
-    const pc1 = engine.state.getDevice("pc1");
-    const pc2 = engine.state.getDevice("pc2");
-
-    const result = ping(pc1, pc2);
-    setPingResult(result);
+  const addPC = () => {
+    const id = "pc" + (engine.state.getAllDevices().length + 1);
+    engine.deviceManager.createPC(id, 200, 200);
   };
 
-  const handleConnectModeToggle = () => {
+  const addRouter = () => {
+    const id = "r" + (engine.state.getAllDevices().length + 1);
+    engine.deviceManager.createRouter(id, 300, 200, routerVendor);
+  };
+
+  const toggleConnectMode = () => {
     window.dispatchEvent(
       new CustomEvent("cybertrace-canvas-mode", {
         detail: "toggle-connect-mode",
@@ -30,53 +28,103 @@ export default function NetworkBuilderApp() {
   };
 
   return (
-    <div style={styles.wrapper}>
-      <div style={styles.canvasArea}>
-        <Canvas
-          engine={engine}
-          onSelectDevice={(device) => setSelectedDevice(device)}
-        />
+    <div style={{ display: "flex", height: "100%" }}>
+      {/* LEFT PANEL */}
+      <div
+        style={{
+          width: "260px",
+          background: "#111",
+          padding: "10px",
+          color: "#fff",
+          overflowY: "auto",
+        }}
+      >
+        <h2>Network Builder</h2>
+
+        <button
+          style={{
+            width: "100%",
+            padding: "8px",
+            marginBottom: "10px",
+            background: "#2a6",
+            border: "none",
+            color: "#fff",
+            cursor: "pointer",
+          }}
+          onClick={addPC}
+        >
+          Add PC
+        </button>
+
+        <div style={{ marginBottom: "10px" }}>
+          <label style={{ display: "block", marginBottom: "4px" }}>
+            Router Vendor
+          </label>
+          <select
+            style={{
+              width: "100%",
+              padding: "6px",
+              background: "#222",
+              color: "#fff",
+              border: "1px solid #444",
+            }}
+            value={routerVendor}
+            onChange={(e) => setRouterVendor(e.target.value)}
+          >
+            {profiles.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <button
+          style={{
+            width: "100%",
+            padding: "8px",
+            marginBottom: "10px",
+            background: "#268",
+            border: "none",
+            color: "#fff",
+            cursor: "pointer",
+          }}
+          onClick={addRouter}
+        >
+          Add Router
+        </button>
+
+        <button
+          style={{
+            width: "100%",
+            padding: "8px",
+            background: "#884",
+            border: "none",
+            color: "#fff",
+            cursor: "pointer",
+          }}
+          onClick={toggleConnectMode}
+        >
+          Connect Devices
+        </button>
+
+        <hr style={{ margin: "15px 0", borderColor: "#333" }} />
+
+        <h3>Device Config</h3>
+        {selectedDevice ? (
+          <engine.ui.DeviceConfigPanel
+            device={selectedDevice}
+            engine={engine}
+          />
+        ) : (
+          <p style={{ color: "#aaa" }}>Select a device</p>
+        )}
       </div>
 
-      <div style={styles.panelArea}>
-        <PanelWrapper device={selectedDevice} engine={engine} />
-
-        <div style={{ marginTop: "20px" }}>
-          <h3>Networking Test</h3>
-          <button onClick={handlePing}>Ping PC1 → PC2</button>
-          {pingResult && (
-            <p style={{ marginTop: "10px", fontWeight: "bold" }}>
-              {pingResult}
-            </p>
-          )}
-        </div>
-
-        <div style={{ marginTop: "20px" }}>
-          <h3>Topology Tools</h3>
-          <button onClick={handleConnectModeToggle}>Connect Devices</button>
-        </div>
+      {/* CANVAS */}
+      <div style={{ flex: 1 }}>
+        <Canvas engine={engine} onSelectDevice={setSelectedDevice} />
       </div>
     </div>
   );
 }
-
-const styles = {
-  wrapper: {
-    display: "flex",
-    height: "80vh",
-    width: "100%",
-    border: "1px solid #333",
-    background: "#1a1a1a",
-  },
-  canvasArea: {
-    flex: 3,
-    position: "relative",
-  },
-  panelArea: {
-    flex: 1,
-    background: "#111",
-    borderLeft: "1px solid #333",
-    color: "#fff",
-    padding: "10px",
-  },
-};

@@ -1,53 +1,51 @@
+import { DeviceFactory } from "../deviceFactory.js";
+
 export class DeviceManager {
-  constructor(networkState) {
-    this.state = networkState;
+  constructor(state) {
+    this.state = state;
+    this.factory = new DeviceFactory();
   }
 
-  createDevice(deviceConfig) {
-    this.state.addDevice({
-      ...deviceConfig,
-      x: deviceConfig.x ?? 100,
-      y: deviceConfig.y ?? 100,
-    });
+  createPC(id, x, y) {
+    const pc = this.factory.createPC(id, x, y);
+    this.state.addDevice(pc);
+    return pc;
   }
 
-  updateDevice(deviceId, updates) {
-    const device = this.state.getDevice(deviceId);
+  createRouter(id, x, y, profile = "generic") {
+    const router = this.factory.createRouter(id, x, y, profile);
+    this.state.addDevice(router);
+    return router;
+  }
+
+  updateDevice(id, newData) {
+    const existing = this.state.getDevice(id);
+    if (!existing) return;
+
+    const updated = { ...existing, ...newData };
+
+    // Ensure router defaults stay intact
+    if (updated.type === "router") {
+      updated.profile = updated.profile || "generic";
+      updated.interfaces = updated.interfaces || [];
+      updated.routes = updated.routes || [];
+    }
+
+    this.state.devices.set(id, updated);
+  }
+
+  moveDevice(id, x, y) {
+    const device = this.state.getDevice(id);
     if (!device) return;
 
-    const updated = {
-      ...device,
-      ...updates,
-    };
-
-    this.state.addDevice(updated);
+    this.updateDevice(id, { x, y });
   }
 
-  moveDevice(deviceId, x, y) {
-    this.updateDevice(deviceId, { x, y });
+  createConnection(a, b) {
+    this.state.addConnection(a, b);
   }
 
-  deleteDevice(deviceId) {
-    this.state.removeDevice(deviceId);
-  }
-
-  getDevice(deviceId) {
-    return this.state.getDevice(deviceId);
-  }
-
-  getDevices() {
-    return this.state.getAllDevices();
-  }
-
-  createConnection(fromId, toId) {
-    this.state.addConnection(fromId, toId);
-  }
-
-  deleteConnection(fromId, toId) {
-    this.state.removeConnection(fromId, toId);
-  }
-
-  getConnections() {
-    return this.state.getConnections();
+  deleteDevice(id) {
+    this.state.removeDevice(id);
   }
 }
