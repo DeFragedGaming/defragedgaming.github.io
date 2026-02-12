@@ -1,23 +1,71 @@
-import React from "react";
-import Link from "@docusaurus/Link";
+import React from 'react';
+import Link from '@docusaurus/Link';
+import Layout from '@theme/Layout';
 
-export default function LabsIndex() {
+export default function LabsOverview() {
   return (
-    <div style={{ padding: "2rem" }}>
-      <h1>CyberTrace Labs</h1>
+    <Layout
+      title="CyberTrace Labs"
+      description="Hands‑on, interactive labs designed to teach real‑world cybersecurity and IT fundamentals."
+    >
+      <div className="container">
+        <h1>CyberTrace Labs</h1>
+        <p>
+          Hands‑on, interactive labs designed to teach real‑world cybersecurity and IT fundamentals.
+        </p>
 
-      <p style={{ maxWidth: "700px" }}>
-        A collection of interactive cybersecurity labs designed for hands‑on
-        learning and practical skill development. Each lab simulates real-world
-        security concepts in a safe, browser-based environment—perfect for
-        exploration, experimentation, and showcasing your technical abilities.
-      </p>
+        <div className="lab-grid">
 
-      <ul>
-        <li><Link to="/labs/mock-bruteforce">Mock Brute Force Lab</Link></li>
-        <li><Link to="/labs/password-hashing">Password Hashing Lab</Link></li>
-        <li><Link to="/labs/log-investigation">Log Investigation Lab</Link></li>
-      </ul>
-    </div>
+          {/* Mock Brute-Force Simulation */}
+          <div className="lab-card">
+            <h3>Mock Brute‑Force Simulation</h3>
+            <p>Analyze authentication logs, detect brute‑force attempts, and learn defensive strategies.</p>
+            <Link className="button button--primary" to="/labs/mock-bruteforce">
+              Start Lab
+            </Link>
+          </div>
+
+          {/* Network Builder */}
+          <div className="lab-card">
+            <h3>Network Builder Lab</h3>
+            <p>Interactive IT & Networking Basics lab. Build networks, configure devices, and validate connectivity.</p>
+            <Link className="button button--primary" to="/labs/network-builder">
+              Start Lab
+            </Link>
+          </div>
+
+          {/* Password Hashing */}
+          <div className="lab-card">
+            <h3>Password Hashing Lab</h3>
+            <p>Coming soon — explore hashing algorithms, salts, and secure password storage.</p>
+          </div>
+
+          {/* Log Investigation */}
+          <div className="lab-card">
+            <h3>Log Investigation Lab</h3>
+            <p>Coming soon — analyze logs, trace attacker activity, and identify indicators of compromise.</p>
+          </div>
+
+          {/* VLAN Segmentation */}
+          <div className="lab-card">
+            <h3>VLAN Segmentation Lab</h3>
+            <p>Coming soon — configure VLANs, trunk ports, and segmentation rules.</p>
+          </div>
+
+          {/* DMZ & Firewall */}
+          <div className="lab-card">
+            <h3>DMZ & Firewall Rules Lab</h3>
+            <p>Coming soon — build a DMZ, configure firewall rules, and validate secure access.</p>
+          </div>
+
+          {/* Troubleshooting */}
+          <div className="lab-card">
+            <h3>Troubleshooting Scenarios</h3>
+            <p>Coming soon — diagnose broken networks and apply real‑world troubleshooting techniques.</p>
+          </div>
+
+        </div>
+      </div>
+    </Layout>
   );
 }

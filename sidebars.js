@@ -52,16 +52,12 @@ const sidebars = {
     },
 
     {
-      type: 'category',
-      label: 'Labs',
-      items: [
-        {
-          type: 'link',
-          label: 'Mock Brute-Force Simulation',
-          href: '/labs/mock-bruteforce',
-        },
-      ],
-    },
+  type: 'link',
+  label: 'Labs',
+  href: '/labs',
+},
+
+
   ],
 };
 
