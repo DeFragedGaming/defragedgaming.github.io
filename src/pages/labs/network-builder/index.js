@@ -21,18 +21,14 @@ export default function NetworkBuilderPage() {
           minHeight: "100vh",
         }}
       >
-        {/* ------------------------------ */}
-        {/* HEADER */}
-        {/* ------------------------------ */}
+        
         <h1 style={{ marginBottom: "10px" }}>Routing & Connectivity Lab</h1>
         <p style={{ marginBottom: "20px", maxWidth: "700px" }}>
           Build a multi‑router network, configure IP addressing, add static
           routes, and validate connectivity — all inside your browser.
         </p>
 
-        {/* ------------------------------ */}
-        {/* TABS (Mock BF Style) */}
-        {/* ------------------------------ */}
+        
         <div
           style={{
             display: "flex",
@@ -64,9 +60,7 @@ export default function NetworkBuilderPage() {
           ))}
         </div>
 
-        {/* ------------------------------ */}
-        {/* TAB CONTENT */}
-        {/* ------------------------------ */}
+        
         <div
           style={{
             background: "#111",
@@ -178,9 +172,7 @@ export default function NetworkBuilderPage() {
           )}
         </div>
 
-        {/* ------------------------------ */}
-        {/* LAB SECTION */}
-        {/* ------------------------------ */}
+        
         <NetworkBuilderApp engine={engine} />
       </div>
     </Layout>

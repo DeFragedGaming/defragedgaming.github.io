@@ -24,9 +24,7 @@ export class Logger {
     return this.entries;
   }
 
-  // -----------------------------
-  // ROUTING LOG HELPERS
-  // -----------------------------
+
 
   logRoutingHop(router, hop) {
     const profile = getRouterProfile(router.profile);
@@ -56,9 +54,7 @@ export class Logger {
     this.log("ARP", message, data);
   }
 
-  // -----------------------------
-  // HIGH-LEVEL LOGGING ENTRYPOINTS
-  // -----------------------------
+
 
   logPingResult(result) {
     if (!result.success) {
@@ -68,7 +64,7 @@ export class Logger {
 
     this.log("PING_SUCCESS", result.message, { hops: result.hops });
 
-    // Log each hop
+   
     for (const hop of result.hops) {
       if (hop.type === "router-hop") {
         this.log("PING_HOP", `Hop: ${hop.from} → ${hop.to}`, hop);

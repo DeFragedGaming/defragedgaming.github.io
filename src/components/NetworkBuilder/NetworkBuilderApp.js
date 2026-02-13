@@ -30,15 +30,23 @@ export default function NetworkBuilderApp({ engine }) {
   };
 
   return (
-    <div style={{ display: "flex", height: "100%" }}>
-      {/* LEFT PANEL */}
+    <div
+      style={{
+        display: "flex",
+        height: "100vh",   
+        overflow: "hidden", 
+      }}
+    >
+      
       <div
         style={{
           width: "260px",
           background: "#111",
           padding: "10px",
           color: "#fff",
-          overflowY: "auto",
+          overflowY: "auto", 
+          overflowX: "hidden",
+          borderRight: "1px solid #222",
         }}
       >
         <h2>Network Builder</h2>
@@ -114,15 +122,35 @@ export default function NetworkBuilderApp({ engine }) {
 
         <h3>Device Config</h3>
         {selectedDevice ? (
-          <engine.ui.DeviceConfigPanel device={selectedDevice} engine={engine} />
+          <engine.ui.DeviceConfigPanel
+            device={selectedDevice}
+            engine={engine}
+          />
         ) : (
           <p style={{ color: "#aaa" }}>Select a device</p>
         )}
       </div>
 
-      {/* CANVAS */}
-      <div style={{ flex: 1 }}>
-        <Canvas engine={engine} onSelectDevice={setSelectedDevice} />
+      
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          overflow: "auto",
+          background: "#000",
+        }}
+      >
+        <div
+          style={{
+            width: "900px",   
+            height: "700px",  
+            overflow: "hidden",
+          }}
+        >
+          <Canvas engine={engine} onSelectDevice={setSelectedDevice} />
+        </div>
       </div>
     </div>
   );

@@ -13,8 +13,8 @@ export default function Canvas({ engine, onSelectDevice }) {
         width={900}
         height={700}
         style={{
-          width: "100%",
-          height: "100%",
+          width: "900px",   
+          height: "700px",  
           background: "#000",
         }}
       />
@@ -27,7 +27,6 @@ export default function Canvas({ engine, onSelectDevice }) {
 
     const drawDevice = (device) => {
       if (device.type === "router") {
-        // Router: square
         ctx.fillStyle = "#3A8FFF";
         ctx.fillRect(device.x - 25, device.y - 25, 50, 50);
 
@@ -36,7 +35,6 @@ export default function Canvas({ engine, onSelectDevice }) {
         ctx.textAlign = "center";
         ctx.fillText(device.name, device.x, device.y + 40);
       } else {
-        // PC: circle
         ctx.beginPath();
         ctx.arc(device.x, device.y, 25, 0, Math.PI * 2);
         ctx.fillStyle = "#4CAF50";
@@ -63,7 +61,6 @@ export default function Canvas({ engine, onSelectDevice }) {
       const devices = engine.state.getAllDevices();
       const connections = engine.state.getConnections();
 
-      // Draw connections
       connections.forEach((c) => {
         const from = engine.state.getDevice(c.from);
         const to = engine.state.getDevice(c.to);
@@ -77,7 +74,6 @@ export default function Canvas({ engine, onSelectDevice }) {
         ctx.stroke();
       });
 
-      // Draw devices
       devices.forEach(drawDevice);
 
       if (connectMode) {
@@ -108,12 +104,11 @@ export default function Canvas({ engine, onSelectDevice }) {
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
 
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-
+   
+    
     return {
-      x: (e.clientX - rect.left) * scaleX,
-      y: (e.clientY - rect.top) * scaleY,
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
     };
   };
 
@@ -176,8 +171,8 @@ export default function Canvas({ engine, onSelectDevice }) {
       width={900}
       height={700}
       style={{
-        width: "100%",
-        height: "100%",
+        width: "900px",   
+        height: "700px",  
         background: "#000",
         cursor: connectMode
           ? "crosshair"

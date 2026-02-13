@@ -3,8 +3,6 @@ import { DeviceManager } from './core/deviceManager.js';
 import { ConnectionManager } from './core/connectionManager.js';
 import { ValidationEngine } from './core/validationEngine.js';
 import { ScenarioLoader } from './state/scenarioLoader.js';
-
-// FIXED IMPORT — THIS WAS BREAKING EVERYTHING
 import { NetworkEngine } from "../network/index";
 
 import { Logger } from "../logging/logger.js";
