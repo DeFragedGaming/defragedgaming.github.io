@@ -1,36 +1,52 @@
+/* Keep Tailwind */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/**
- * Any CSS included here will be global. The classic template
- * bundles Infima by default. Infima is a CSS framework designed to
- * work well for content-centric websites.
- */
-
-/* You can override the default Infima variables here. */
+/* Docusaurus theme variables */
 :root {
   --ifm-color-primary: #2e8555;
-  --ifm-color-primary-dark: #29784c;
-  --ifm-color-primary-darker: #277148;
-  --ifm-color-primary-darkest: #205d3b;
-  --ifm-color-primary-light: #33925d;
-  --ifm-color-primary-lighter: #359962;
-  --ifm-color-primary-lightest: #3cad6e;
   --ifm-code-font-size: 95%;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
 }
 
-/* For readability concerns, you should choose a lighter palette in dark mode. */
+/* Dark mode */
 [data-theme='dark'] {
   --ifm-color-primary: #25c2a0;
-  --ifm-color-primary-dark: #21af90;
-  --ifm-color-primary-darker: #1fa588;
-  --ifm-color-primary-darkest: #1a8870;
-  --ifm-color-primary-light: #29d5b0;
-  --ifm-color-primary-lighter: #32d8b4;
-  --ifm-color-primary-lightest: #4fddbf;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
 }
 
-@import "./labs.css";
+/* Background overrides */
+:root,
+[data-theme='dark'] {
+  --ifm-background-color: #0f172a !important;
+  --ifm-background-surface-color: #0f172a !important;
+}
+
+html,
+body,
+#__docusaurus {
+  background: #0f172a !important;
+}
+
+/* SAFE layout overrides */
+.theme-layout-main,
+.container,
+.row {
+  background: transparent !important;
+}
+
+/* Restore required navbar spacing */
+.main-wrapper {
+  padding-top: var(--ifm-navbar-height) !important;
+}
+
+/* Typography */
+.prose {
+  --tw-prose-body: #cbd5e1;
+  --tw-prose-headings: #38bdf8;
+  --tw-prose-links: #22d3ee;
+  --tw-prose-bold: #f1f5f9;
+  --tw-prose-code: #f472b6;
+  --tw-prose-pre-bg: #0f172a;
+}

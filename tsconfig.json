@@ -14,8 +14,11 @@
     "types": ["@docusaurus/module-type-aliases"],
     "baseUrl": ".",
     "paths": {
-      "@site/*": ["./*"]
-    },
+  "@theme/*": ["./src/theme/*"],
+  "@generated/*": ["./.docusaurus/*"],
+  "@site/*": ["./*"]
+},
+
     "lib": ["DOM", "DOM.Iterable", "ES2020"]
   },
   "include": ["src", "docusaurus.config.ts"]

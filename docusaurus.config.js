@@ -14,13 +14,11 @@ const config = {
   url: 'https://defragedgaming.github.io',
   baseUrl: '/',
 
-  organizationName: 'defragedgaming', 
+  organizationName: 'defragedgaming',
   projectName: 'defragedgaming.github.io',
   deploymentBranch: 'gh-pages',
   githubHost: 'github.com',
-  
 
-  
   onBrokenLinks: 'throw',
 
   i18n: {
@@ -31,11 +29,14 @@ const config = {
   presets: [
     [
       'classic',
-      ({
+      {
         docs: {
+          path: 'docs',
+          routeBasePath: 'docs',
           sidebarPath: './sidebars.js',
           editUrl: 'https://github.com/defragedgaming/cybertrace.github.io/tree/main/',
         },
+
         blog: {
           showReadingTime: true,
           feedOptions: {
@@ -47,19 +48,20 @@ const config = {
           onInlineAuthors: 'warn',
           onUntruncatedBlogPosts: 'warn',
         },
+
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
-
         },
-      }),
+      },
     ],
   ],
 
-  themeConfig: ({
+  themeConfig: {
     image: 'img/logo.png',
     colorMode: {
       respectPrefersColorScheme: true,
     },
+
     navbar: {
       title: 'CyberTrace',
       logo: {
@@ -67,13 +69,9 @@ const config = {
         src: 'img/logo48x48.png',
       },
       items: [
-        {
-          type: 'docSidebar',
-          sidebarId: 'tutorialSidebar',
-          position: 'left',
-          label: 'Docs',
-        },
-        {to: '/blog', label: 'Blog', position: 'left'},
+        { to: '/docs/intro', label: 'Docs', position: 'left' },
+        { to: '/blog', label: 'Blog', position: 'left' },
+        { to: '/tools', label: 'Tools', position: 'left' },
         {
           href: 'https://github.com/defragedgaming/cybertrace.github.io',
           label: 'GitHub',
@@ -81,56 +79,15 @@ const config = {
         },
       ],
     },
-    footer: {
-      style: 'dark',
-      links: [
-        {
-          title: 'Docs',
-          items: [
-            {
-              label: 'Introduction',
-              to: '/docs/intro',
-            },
-          ],
-        },
-        {
-          title: 'Community',
-          items: [
-            {
-              label: 'Stack Overflow',
-              href: 'https://stackoverflow.com/questions/tagged/docusaurus',
-            },
-            {
-              label: 'Discord',
-              href: 'https://discordapp.com/invite/docusaurus',
-            },
-            {
-              label: 'X',
-              href: 'https://x.com/docusaurus',
-            },
-          ],
-        },
-        {
-          title: 'More',
-          items: [
-            {
-              label: 'Blog',
-              to: '/blog',
-            },
-            {
-              label: 'GitHub',
-              href: 'https://github.com/defragedgaming/cybertrace.github.io',
-            },
-          ],
-        },
-      ],
-      copyright: `Copyright © ${new Date().getFullYear()} CyberTrace.`,
-    },
+
+    footer: {},
+
     prism: {
       theme: prismThemes.github,
       darkTheme: prismThemes.dracula,
     },
-  }),
+  },
 };
 
+// ⭐ THIS WAS MISSING
 export default config;

@@ -61,9 +61,7 @@ export default function DeviceConfigPanel({ device, engine }) {
     color: "#fff",
   };
 
-  // -----------------------------
-  // PC CONFIG UI
-  // -----------------------------
+
   const renderPCConfig = () => (
     <>
       <div style={fieldStyle}>
@@ -113,9 +111,7 @@ export default function DeviceConfigPanel({ device, engine }) {
     </>
   );
 
-  // -----------------------------
-  // ROUTER CONFIG UI
-  // -----------------------------
+
   const renderRouterConfig = () => {
     const profile = getRouterProfile(form.profile);
 
