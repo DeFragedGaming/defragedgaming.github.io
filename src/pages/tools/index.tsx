@@ -1,14 +1,17 @@
 import React from "react";
 import Layout from "@theme/Layout";
+import Head from "@docusaurus/Head";
 import { toolCategories } from "../../data/toolCategories";
 import ToolCategoryCard from "../../components/ToolCategoryCard";
 
 export default function ToolsOverview() {
   return (
-    <Layout
-      title="CyberTrace Tools Directory"
-      description="A curated collection of free cybersecurity tools organized by category."
-    >
+    <>
+      <Head>
+        <title>CyberTrace Tools Directory</title>
+        <meta name="description" content="A curated collection of free cybersecurity tools organized by category." />
+      </Head>
+      <Layout>
       <main style={{ padding: "2rem", maxWidth: "1100px", margin: "0 auto" }}>
         <h1>CyberTrace Tools Directory</h1>
 
@@ -32,6 +35,7 @@ export default function ToolsOverview() {
           ))}
         </div>
       </main>
-    </Layout>
+      </Layout>
+    </>
   );
 }

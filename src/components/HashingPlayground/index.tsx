@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import Layout from "@theme/Layout";
 
 export default function HashPlayground() {
   const [input, setInput] = useState("");

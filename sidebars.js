@@ -36,7 +36,7 @@ const sidebars = {
         {
           type: 'link',
           label: 'Hashing & Encoding Playground',
-          href: '/tools/hashing',
+          href: '/tools/hash-playground',
         },
         {
           type: 'link',
