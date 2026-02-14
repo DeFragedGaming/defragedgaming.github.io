@@ -50,3 +50,82 @@ body,
   --tw-prose-code: #f472b6;
   --tw-prose-pre-bg: #0f172a;
 }
+
+/* ------------------------------------------------------ */
+/* ⭐ BLOG SPACING FIXES — FIXES THE EXACT AREA YOU CIRCLED */
+/* ------------------------------------------------------ */
+
+/* Add spacing under the blog header (title + author block) */
+.blogPostHeader {
+  margin-bottom: 2.25rem !important;
+}
+
+/* Add spacing above the first paragraph */
+.markdown > p:first-of-type {
+  margin-top: 1.75rem !important;
+}
+
+/* Add breathing room around horizontal rules */
+.markdown hr {
+  margin-top: 2.5rem !important;
+  margin-bottom: 2.5rem !important;
+  border-color: rgba(34, 211, 238, 0.35);
+}
+
+/* Add spacing before section headers */
+.markdown h2 {
+  margin-top: 2.75rem !important;
+}
+
+/* Add spacing before lists */
+.markdown ul,
+.markdown ol {
+  margin-top: 1.25rem !important;
+}
+
+.markdown p {
+  margin-top: 1.25rem !important;
+  margin-bottom: 1.25rem !important;
+}
+
+/* Add spacing before ALL H2 headers */
+.markdown h2 {
+  margin-top: 3rem !important;
+  margin-bottom: 1.25rem !important;
+}
+
+/* Add spacing before ALL H3 headers */
+.markdown h3 {
+  margin-top: 2.25rem !important;
+  margin-bottom: 1rem !important;
+}
+
+/* Add spacing before lists */
+.markdown ul,
+.markdown ol {
+  margin-top: 1.5rem !important;
+  margin-bottom: 1.5rem !important;
+}
+
+/* Add spacing between list items */
+.markdown li {
+  margin-top: 0.5rem !important;
+  margin-bottom: 0.5rem !important;
+}
+
+/* Add spacing under the blog header (title + author) */
+.blogPostHeader {
+  margin-bottom: 2.75rem !important;
+}
+
+/* Add spacing above the FIRST paragraph after the header */
+.markdown > p:first-of-type {
+  margin-top: 2rem !important;
+}
+
+/* Add spacing around horizontal rules */
+.markdown hr {
+  margin-top: 3rem !important;
+  margin-bottom: 3rem !important;
+  border-color: rgba(34, 211, 238, 0.35);
+}

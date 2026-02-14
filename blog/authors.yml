@@ -1,9 +1,4 @@
 defragedgaming:
   name: Matthew Hammel
   title: Cybersecurity Engineer & Creator of CyberTrace
-  url: https://www.linkedin.com/in/matthew-hammel/
-  image_url: https://github.com/defragedgaming.png
-  page: true
-  socials:
-    github: defragedgaming
-    linkedin: matthew-hammel
+  image_url: /img/logo48x48.png

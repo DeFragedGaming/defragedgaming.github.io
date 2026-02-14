@@ -27,34 +27,38 @@ const config = {
   },
 
   presets: [
-    [
-      'classic',
-      {
-        docs: {
-          path: 'docs',
-          routeBasePath: 'docs',
-          sidebarPath: './sidebars.js',
-          editUrl: 'https://github.com/defragedgaming/cybertrace.github.io/tree/main/',
-        },
-
-        blog: {
-          showReadingTime: true,
-          feedOptions: {
-            type: ['rss', 'atom'],
-            xslt: true,
-          },
-          editUrl: 'https://github.com/defragedgaming/cybertrace.github.io/tree/main/',
-          onInlineTags: 'warn',
-          onInlineAuthors: 'warn',
-          onUntruncatedBlogPosts: 'warn',
-        },
-
-        theme: {
-          customCss: require.resolve('./src/css/custom.css'),
-        },
+  [
+    'classic',
+    {
+      docs: {
+        path: 'docs',
+        routeBasePath: 'docs',
+        sidebarPath: './sidebars.js',
+        editUrl: 'https://github.com/defragedgaming/cybertrace.github.io/tree/main/',
       },
-    ],
+
+      blog: {
+        routeBasePath: 'blog',
+        blogListComponent: '@site/src/pages/blog/index.js',
+        blogSidebarCount: 0,
+        showReadingTime: true,
+        feedOptions: {
+          type: ['rss', 'atom'],
+          xslt: true,
+        },
+        editUrl: 'https://github.com/defragedgaming/cybertrace.github.io/tree/main/',
+        onInlineTags: 'warn',
+        onInlineAuthors: 'warn',
+        onUntruncatedBlogPosts: 'warn',
+      },
+
+      theme: {
+        customCss: require.resolve('./src/css/custom.css'),
+      },
+    },
   ],
+],
+
 
   themeConfig: {
     image: 'img/logo.png',
