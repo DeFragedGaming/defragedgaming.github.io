@@ -1,1 +1,0 @@
-"use strict";(globalThis.webpackChunkcybertrace_site=globalThis.webpackChunkcybertrace_site||[]).push([[7472],{5513(e){e.exports=JSON.parse('{"title":"Recent posts","items":[{"title":"Welcome to the CyberTrace Blog","permalink":"/blog/welcome","unlisted":false,"date":"2026-02-09T14:00:12.000Z"}]}')}}]);
