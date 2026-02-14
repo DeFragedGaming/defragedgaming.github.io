@@ -33,14 +33,10 @@ export default function HashPlayground() {
     }
   }
 
-  // Lightweight MD5 fallback (safe for demo use)
   function md5(str: string) {
-    // Simple JS MD5 implementation (shortened for clarity)
-    // This is NOT for cryptographic use — only for demonstration.
-    const buffer = new TextEncoder().encode(str);
-    let digest = crypto.subtle.digest("SHA-1", buffer); // placeholder
-    return "MD5 not supported in WebCrypto — using fallback hash";
-  }
+  return "MD5 not supported in WebCrypto — using fallback hash";
+}
+
 
   function copyOutput() {
     navigator.clipboard.writeText(output);

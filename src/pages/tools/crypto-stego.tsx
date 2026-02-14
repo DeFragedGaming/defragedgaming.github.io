@@ -1,6 +1,5 @@
 import React from "react";
 import Layout from "@theme/Layout";
-import Link from "@docusaurus/Link";
 
 type Tool = {
   name: string;
@@ -13,59 +12,59 @@ type Tool = {
   githubUrl?: string;
 };
 
-const webTools: Tool[] = [
+const cryptoStegoTools: Tool[] = [
   {
-    name: "OWASP ZAP",
+    name: "Steghide",
     description:
-      "OWASP ZAP is an open-source web application security scanner designed for finding vulnerabilities in web apps. It includes automated scanning, intercepting proxy capabilities, fuzzing, and passive analysis.",
+      "Steghide is a classic steganography tool that hides data inside images and audio files using passphrase‑based encryption.",
     whyUseful:
-      "Ideal for learning common web vulnerabilities and understanding how automated scanners identify weaknesses.",
+      "Great for learning how attackers conceal payloads inside media files and how defenders extract hidden content.",
     difficulty: "Beginner",
-    tags: ["Scanner", "Proxy", "OWASP"],
-    url: "https://www.zaproxy.org/",
-    githubUrl: "https://github.com/zaproxy/zaproxy",
+    tags: ["Steganography", "Images", "Audio"],
+    url: "https://steghide.sourceforge.net/",
   },
   {
-    name: "Burp Suite Community Edition",
+    name: "zsteg",
     description:
-      "Burp Suite Community Edition provides a powerful intercepting proxy, repeater, and manual testing tools for web application security. It is widely used by penetration testers and bug bounty hunters.",
+      "zsteg is a powerful tool for detecting hidden data in PNG and BMP files using LSB and other stego techniques.",
     whyUseful:
-      "Teaches how to intercept, modify, and replay HTTP requests — core skills for web pentesting.",
+      "Shows how subtle pixel‑level manipulations can embed hidden messages and how analysts detect them.",
     difficulty: "Intermediate",
-    tags: ["Proxy", "Manual Testing", "Web Security"],
-    url: "https://portswigger.net/burp/communitydownload",
+    tags: ["PNG", "LSB", "Forensics"],
+    url: "https://github.com/zed-0xff/zsteg",
+    githubUrl: "https://github.com/zed-0xff/zsteg",
   },
   {
-    name: "Ffuf",
+    name: "Stegsolve",
     description:
-      "Ffuf is a fast web fuzzing tool used for discovering directories, files, parameters, and virtual hosts. It is highly customizable and optimized for speed.",
+      "Stegsolve is a Java‑based image analysis tool that provides color plane inspection, bit‑layer viewing, and XOR analysis.",
     whyUseful:
-      "Shows how enumeration reveals hidden attack surfaces and how fuzzing uncovers misconfigurations.",
+      "Helps learners visually inspect images for anomalies and hidden data — a common CTF and DFIR skill.",
     difficulty: "Intermediate",
-    tags: ["Fuzzing", "Enumeration", "CLI"],
-    url: "https://github.com/ffuf/ffuf",
-    githubUrl: "https://github.com/ffuf/ffuf",
+    tags: ["Images", "Analysis", "Visualization"],
+    url: "https://github.com/zardus/ctf-tools/tree/master/stegsolve",
+    githubUrl: "https://github.com/zardus/ctf-tools",
   },
   {
-    name: "Nikto",
+    name: "OutGuess",
     description:
-      "Nikto is a classic web server scanner that checks for outdated software, misconfigurations, and known vulnerabilities. It provides quick baseline assessments of web servers.",
+      "OutGuess is a universal steganography tool that hides data in JPEG images while preserving statistical properties.",
     whyUseful:
-      "Great for beginners learning how web servers expose risk through outdated components and insecure defaults.",
-    difficulty: "Beginner",
-    tags: ["Scanner", "Web Server", "Vulnerabilities"],
-    url: "https://github.com/sullo/nikto",
-    githubUrl: "https://github.com/sullo/nikto",
+      "Demonstrates how attackers embed data in lossy formats and how forensic analysts extract it.",
+    difficulty: "Advanced",
+    tags: ["JPEG", "Steganography", "CLI"],
+    url: "https://github.com/crorvick/outguess",
+    githubUrl: "https://github.com/crorvick/outguess",
   },
   {
-    name: "Postman",
+    name: "Cryptool",
     description:
-      "Postman is an API testing platform that supports request crafting, authentication workflows, and automated testing. It is widely used for API security testing and development.",
+      "Cryptool is an educational cryptography suite that includes cipher demos, stego exercises, and visualization tools.",
     whyUseful:
-      "Helps learners understand API behavior, authentication flows, and how attackers probe API endpoints.",
+      "Perfect for learning classical and modern crypto concepts, brute‑forcing, and stego basics.",
     difficulty: "Beginner",
-    tags: ["API", "Testing", "Automation"],
-    url: "https://www.postman.com/",
+    tags: ["Crypto", "Education", "Stego"],
+    url: "https://www.cryptool.org/en/",
   },
 ];
 
@@ -84,9 +83,11 @@ function ToolCard({ tool }: { tool: Tool }) {
     >
       <h3 style={{ margin: 0 }}>{tool.name}</h3>
       <p style={{ color: "#ccc", margin: 0 }}>{tool.description}</p>
+
       <p style={{ color: "#aaa", fontSize: "0.9rem" }}>
         <strong>Why it’s useful:</strong> {tool.whyUseful}
       </p>
+
       <p style={{ color: "#aaa", fontSize: "0.85rem" }}>
         <strong>Difficulty:</strong> {tool.difficulty}
       </p>
@@ -147,18 +148,18 @@ function ToolCard({ tool }: { tool: Tool }) {
   );
 }
 
-export default function WebSecurityPage() {
+export default function CryptoStegoPage() {
   return (
     <Layout
-      title="Web Application Security Tools"
-      description="Tools for testing and securing web applications and APIs."
+      title="Cryptography & Steganography Tools"
+      description="Tools for hiding, detecting, and analyzing concealed data in images, audio, and files."
     >
       <main style={{ padding: "2rem", maxWidth: "1100px", margin: "0 auto" }}>
-        <h1>Web Application Security Tools</h1>
+        <h1>Cryptography & Steganography Tools</h1>
+
         <p style={{ color: "#aaa", marginBottom: "1.5rem" }}>
-          Web application security tools help identify vulnerabilities in websites and APIs. These
-          tools support scanning, fuzzing, manual testing, and analysis of HTTP traffic to uncover
-          weaknesses in authentication, input validation, and server configuration.
+          Crypto‑Stego tools help analysts understand how data is hidden inside files and how
+          encryption, encoding, and steganography techniques are used by attackers and defenders.
         </p>
 
         <div
@@ -168,7 +169,7 @@ export default function WebSecurityPage() {
             gap: "16px",
           }}
         >
-          {webTools.map((tool) => (
+          {cryptoStegoTools.map((tool) => (
             <ToolCard key={tool.name} tool={tool} />
           ))}
         </div>
