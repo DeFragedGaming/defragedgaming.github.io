@@ -1,0 +1,1 @@
+"use strict";(globalThis.webpackChunkcybertrace_site=globalThis.webpackChunkcybertrace_site||[]).push([[9048],{3558(e,s,a){a.d(s,{A:()=>r});a(6540);var c=a(2115),t=a(4848);function r(e){return(0,t.jsx)("div",{className:"space-y-2 text-slate-300",children:(0,t.jsx)(c.A,{...e})})}}}]);
