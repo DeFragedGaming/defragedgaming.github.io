@@ -62,7 +62,7 @@ export default function LabsOverview() {
           <LabCard
             title="Mock Brute‑Force Simulation"
             description="Analyze authentication logs, detect brute‑force attempts, and learn defensive strategies."
-            link="/labs/mock-bruteforce"
+            link="/labs/mock-bruteforce-lab"
             active
           />
 
