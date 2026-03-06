@@ -21,17 +21,4 @@
         <updated>2026-03-06T04:53:34.000Z</updated>
         <summary type="html"><![CDATA[Placeholder post. Content coming soon.]]></summary>
     </entry>
-    <entry>
-        <title type="html"><![CDATA[Welcome to the CyberTrace Blog]]></title>
-        <id>https://defragedgaming.github.io/blog/welcome</id>
-        <link href="https://defragedgaming.github.io/blog/welcome"/>
-        <updated>2026-02-14T10:21:39.000Z</updated>
-        <summary type="html"><![CDATA[The official launch of the CyberTrace blog — dev logs, security breakdowns, and behind‑the‑scenes engineering notes.]]></summary>
-        <author>
-            <name>Matthew Hammel</name>
-        </author>
-        <category label="intro" term="intro"/>
-        <category label="cybertrace" term="cybertrace"/>
-        <category label="update" term="update"/>
-    </entry>
 </feed>
