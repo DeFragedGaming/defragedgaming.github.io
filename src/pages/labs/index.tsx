@@ -97,6 +97,14 @@ export default function LabsOverview() {
             title="Troubleshooting Scenarios"
             description="Diagnose broken networks and apply real‑world troubleshooting techniques."
           />
+
+          <LabCard
+            title="Phishing Lab"
+            description="Analyze suspicious emails and detect red flags."
+            link="/labs/phishing-lab"
+            active
+          />
+
         </div>
       </div>
     </Layout>
