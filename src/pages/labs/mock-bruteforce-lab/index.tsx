@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import "./bruteforceLab.css";
+import Layout from "@theme/Layout";
 
 export default function BruteforceLab() {
   const phases = [
@@ -464,11 +465,12 @@ export default function BruteforceLab() {
       : null;
 
   return (
-    <div className="lab-container">
-      <header className="lab-header">
-        <div className="lab-title">Hybrid Brute-Force Simulator</div>
-        <div className="lab-status">LIVE · Client-side only</div>
-      </header>
+    <Layout>
+      <div className="lab-container">
+        <header className="lab-header">
+          <div className="lab-title">Hybrid Brute-Force Simulator</div>
+          <div className="lab-status">LIVE · Client-side only</div>
+        </header>
 
       <div className="phase-tabs">
         {phases.map((p) => (
@@ -601,5 +603,6 @@ export default function BruteforceLab() {
         </div>
       )}
     </div>
+    </Layout>
   );
 }
