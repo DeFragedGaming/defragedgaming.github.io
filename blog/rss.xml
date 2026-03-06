@@ -22,5 +22,15 @@
             <pubDate>Fri, 06 Mar 2026 04:53:34 GMT</pubDate>
             <description><![CDATA[Placeholder post. Content coming soon.]]></description>
         </item>
+        <item>
+            <title><![CDATA[Welcome to the CyberTrace Blog]]></title>
+            <link>https://defragedgaming.github.io/blog/welcome</link>
+            <guid>https://defragedgaming.github.io/blog/welcome</guid>
+            <pubDate>Sat, 14 Feb 2026 10:21:39 GMT</pubDate>
+            <description><![CDATA[The official launch of the CyberTrace blog — dev logs, security breakdowns, and behind‑the‑scenes engineering notes.]]></description>
+            <category>intro</category>
+            <category>cybertrace</category>
+            <category>update</category>
+        </item>
     </channel>
 </rss>
