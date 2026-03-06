@@ -60,7 +60,7 @@ export default function BlogHome() {
             title="Welcome to the CyberTrace Blog"
             description="A quick overview of what this blog will cover, why it exists, and what’s coming next."
             date="Feb 2026"
-            link="welcome"
+            link="/welcome"
             tag="Update"
           />
 
@@ -78,6 +78,15 @@ export default function BlogHome() {
             date="Coming Soon"
             link="hashing-basics"
             tag="Cybersecurity"
+          />
+
+          <BlogCard
+            title="Brute-Force Simulator Progress and Life in My Final Semester"
+            date="March 2026"
+            tag="Dev Log"
+            description="A deep dive into the BFS improvements, the new phase engine, and a personal update as I enter my final semester of my BS in Cybersecurity."
+            link="March/03-06-2026"
+
           />
 
         </div>
