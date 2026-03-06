@@ -1,0 +1,43 @@
+.author-header {
+  display: flex;
+  gap: 1.25rem;
+  margin-bottom: 2.5rem;
+  align-items: flex-start;
+}
+
+.author-header-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 6px;
+}
+
+.author-header-text {
+  max-width: 700px;
+}
+
+.author-header-name {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.author-header-title {
+  margin: 0.25rem 0 1rem;
+  opacity: 0.8;
+}
+
+.author-header-desc {
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+.author-header-section-title {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.author-header-list {
+  margin: 0;
+  padding-left: 1.25rem;
+}
