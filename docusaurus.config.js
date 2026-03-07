@@ -67,22 +67,28 @@ const config = {
     },
 
     navbar: {
-      title: 'CyberTrace',
-      logo: {
-        alt: 'CyberTrace Logo',
-        src: 'img/logo48x48.png',
-      },
-      items: [
-        { to: '/docs/intro', label: 'Docs', position: 'left' },
-        { to: '/blog', label: 'Blog', position: 'left' },
-        { to: '/tools', label: 'Tools', position: 'left' },
-        {
-          href: 'https://github.com/defragedgaming/cybertrace.github.io',
-          label: 'GitHub',
-          position: 'right',
-        },
-      ],
+  title: 'CyberTrace',
+  logo: {
+    alt: 'CyberTrace Logo',
+    src: 'img/logo48x48.png',
+  },
+  items: [
+    { to: '/docs/intro', label: 'Docs', position: 'left' },
+    { to: '/blog', label: 'Blog', position: 'left' },
+    { to: '/tools', label: 'Tools', position: 'left' },
+    { to: '/writeups', label: 'Writeups', position: 'left' },
+    { to: '/projects', label: 'Projects', position: 'left' },
+    { to: '/labs', label: 'Labs', position: 'left' },
+    { to: '/notes', label: 'Notes', position: 'left' },
+    {
+      href: 'https://github.com/defragedgaming/cybertrace.github.io',
+      label: 'GitHub',
+      position: 'right',
     },
+  ],
+},
+
+
 
     footer: {},
 
