@@ -9,7 +9,7 @@ export default function Navbar() {
   const location = useLocation();
 
   const navItems = [
-    { label: "Docs", to: "/docs/intro" },
+    { label: "Docs", to: "/docs" },
     { label: "Blog", to: "/blog" },
     { label: "Tools", to: "/tools" },
     { label: "Writeups", to: "/writeups" },

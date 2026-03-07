@@ -73,7 +73,7 @@ const config = {
     src: 'img/logo48x48.png',
   },
   items: [
-    { to: '/docs/intro', label: 'Docs', position: 'left' },
+    { to: '/docs', label: 'Docs', position: 'left' },
     { to: '/blog', label: 'Blog', position: 'left' },
     { to: '/tools', label: 'Tools', position: 'left' },
     { to: '/writeups', label: 'Writeups', position: 'left' },
