@@ -1,10 +1,16 @@
 import React from "react";
 import Layout from "@theme/Layout";
 import Link from "@docusaurus/Link";
+import Head from "@docusaurus/Head";
 
 export default function Projects() {
   return (
-    <Layout>
+    <>
+      <Head>
+        <title>Projects</title>
+        <meta name="description" content="CyberTrace Projects" />
+      </Head>
+      <Layout>
       <div style={{ padding: "2rem", maxWidth: "960px", margin: "0 auto" }}>
         <h1 style={{ color: "#e5e7eb" }}>Projects</h1>
 
@@ -29,8 +35,8 @@ export default function Projects() {
             Launch
           </Link>
         </div>
-
       </div>
-    </Layout>
+      </Layout>
+    </>
   );
 }

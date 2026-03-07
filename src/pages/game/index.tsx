@@ -1,7 +1,7 @@
 import React from "react";
 import Layout from "@theme/Layout";
 import Head from "@docusaurus/Head";
-import { TerminalShell } from "../../components/TerminalShell";
+import BrowserOnly from "@docusaurus/BrowserOnly";
 
 export default function GamePage() {
   return (
@@ -11,7 +11,12 @@ export default function GamePage() {
         <meta name="description" content="CyberTrace OS Simulation" />
       </Head>
       <Layout>
-        <TerminalShell />
+        <BrowserOnly>
+          {() => {
+            const { TerminalShell } = require("../../components/TerminalShell");
+            return <TerminalShell />;
+          }}
+        </BrowserOnly>
       </Layout>
     </>
   );
