@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from "react";
 import { Terminal } from "xterm";
 import { FitAddon } from "xterm-addon-fit";
 import "xterm/css/xterm.css";
+import { MissionOne } from "../../missions/MissionOne";
 
 export function TerminalShell() {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -147,6 +148,10 @@ export function TerminalShell() {
           await sleep(900);
           term.write("Decoding incomplete. Fragment recovered:\r\n");
           term.write("[REDACTED SIGNAL FRAGMENT]\r\n");
+          await sleep(900);
+          term.write("\r\nAuto‑initiating Mission One...\r\n");
+          await sleep(900);
+          await MissionOne(term, sleep);
           break;
 
         case "status":
