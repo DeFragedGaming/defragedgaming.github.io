@@ -3,12 +3,14 @@ import { Terminal } from "xterm";
 import { FitAddon } from "xterm-addon-fit";
 import "xterm/css/xterm.css";
 import { MissionAlpha } from "../../missions/MissionAlpha";
-
+import { MissionDebriefBlackWinter } from "../../missions/MissionDebriefBlackWinter";
+import { MissionBeta } from "../../missions/MissionBeta";
 
 export function TerminalShell() {
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
+    let missionActive = false;
     const term = new Terminal({
       theme: {
         background: "#020617",
@@ -150,10 +152,39 @@ export function TerminalShell() {
           term.write("Decoding incomplete. Fragment recovered:\r\n");
           term.write("[REDACTED SIGNAL FRAGMENT]\r\n");
           await sleep(900);
-          term.write("\r\nAuto‑initiating Mission One...\r\n");
+          term.write("\r\nAuto‑initiating Mission Alpha...\r\n");
           await sleep(900);
-          await MissionOne(term, sleep);
-          break;
+          
+
+          missionActive = true;
+
+          await MissionAlpha(term, sleep, () => {
+            missionActive = false; 
+        
+        
+          });
+
+        break;
+        
+        case "briefing":
+          term.write("Initiating debriefing...\r\n");
+          await sleep(600);
+          missionActive = true;
+          await MissionDebriefBlackWinter(term, sleep, () => {
+          missionActive = false;
+          term.write(" ");
+      });
+        break;
+
+        case "nodezero":
+          term.write("Accessing deep Soviet subsystem NODE ZERO...\r\n");
+          await sleep(600);
+          missionActive = true;
+          await MissionBeta(term, sleep, () => {
+          missionActive = false;
+          term.write(" ");
+      });
+        break;
 
         case "status":
           term.write("Operator Status:\r\n");
@@ -227,9 +258,11 @@ export function TerminalShell() {
     };
 
     term.onData((d) => {
-      if (!introDone) return;
-      handleKey(d);
-    });
+  if (!introDone) return;
+  if (missionActive) return; 
+  handleKey(d);
+});
+
 
     (async () => {
       introDone = true;
