@@ -1,6 +1,7 @@
 import React from "react";
 import TopNav from "./layout/TopNav";
 import LeftPanel from "./panels/LeftPanel";
+import Canvas from "./canvas/Canvas";
 
 export default function NetworkLab() {
   return (
@@ -15,33 +16,12 @@ export default function NetworkLab() {
         overflow: "hidden"
       }}
     >
-      
       <TopNav />
 
-      
       <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
-        
-        
         <LeftPanel />
+        <Canvas />
 
-        
-        <div
-          style={{
-            flex: 1,
-            backgroundColor: "#0d0d0d",
-            padding: "12px",
-            borderLeft: "1px solid #00000020",
-            borderRight: "1px solid #00000020",
-            overflow: "auto"
-          }}
-        >
-          <h2 style={{ fontSize: "14px", marginBottom: "10px", color: "#7fc7ff" }}>
-            Canvas Area
-          </h2>
-          <div style={{ opacity: 0.6 }}>Network canvas coming soon…</div>
-        </div>
-
-        
         <div
           style={{
             width: "300px",
@@ -51,14 +31,21 @@ export default function NetworkLab() {
             overflowY: "auto"
           }}
         >
-          <h2 style={{ fontSize: "14px", marginBottom: "10px", color: "#7fc7ff" }}>
+          <h2
+            style={{
+              fontSize: "14px",
+              marginBottom: "10px",
+              color: "#7fc7ff",
+              textTransform: "uppercase",
+              letterSpacing: "1px"
+            }}
+          >
             Device Config
           </h2>
           <div style={{ opacity: 0.6 }}>Configuration panel coming soon…</div>
         </div>
       </div>
 
-      
       <div
         style={{
           height: "160px",
@@ -68,7 +55,15 @@ export default function NetworkLab() {
           overflowY: "auto"
         }}
       >
-        <h2 style={{ fontSize: "14px", marginBottom: "10px", color: "#7fc7ff" }}>
+        <h2
+          style={{
+            fontSize: "14px",
+            marginBottom: "10px",
+            color: "#7fc7ff",
+            textTransform: "uppercase",
+            letterSpacing: "1px"
+          }}
+        >
           Terminal / Logs
         </h2>
         <div style={{ opacity: 0.6 }}>Terminal output coming soon…</div>
