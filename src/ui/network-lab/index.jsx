@@ -1,73 +1,83 @@
-import React from "react";
+import React, { useState } from "react";
 import TopNav from "./layout/TopNav";
 import LeftPanel from "./panels/LeftPanel";
+import RightPanel from "./panels/RightPanel";
 import Canvas from "./canvas/Canvas";
+import BottomPanel from "./panels/BottomPanel";
 
 export default function NetworkLab() {
+  const [devices, setDevices] = useState([]);
+  const [selectedDevice, setSelectedDevice] = useState(null);
+  const [logs, setLogs] = useState([]);
+
+  const addLog = (text) => {
+    setLogs((prev) => [...prev, text]);
+  };
+
+  const handleDeviceSelect = (device) => {
+    setSelectedDevice(device);
+    addLog(`Selected device: ${device.hostname}`);
+  };
+
+  const handleDeviceUpdate = (updated) => {
+    setDevices((prev) =>
+      prev.map((d) => (d.id === updated.id ? updated : d))
+    );
+    setSelectedDevice(updated);
+    addLog(`Updated ${updated.hostname}`);
+  };
+
+  const handleCommand = (cmd) => {
+    addLog(`$ ${cmd}`);
+
+    if (cmd === "clear") {
+      setLogs([]);
+      return;
+    }
+
+    addLog(`Command not recognized: ${cmd}`);
+  };
+
   return (
     <div
       style={{
-        display: "flex",
-        flexDirection: "column",
         height: "100vh",
-        backgroundColor: "#0b0b0b",
-        color: "#e5e5e5",
-        fontFamily: "Consolas, monospace",
-        overflow: "hidden"
+        width: "100vw",
+        background: "#0b1120",
+        display: "flex",
+        flexDirection: "column"
       }}
     >
       <TopNav />
 
-      <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
-        <LeftPanel />
-        <Canvas />
-
-        <div
-          style={{
-            width: "300px",
-            backgroundColor: "#111",
-            borderLeft: "1px solid #1e1e1e",
-            padding: "12px",
-            overflowY: "auto"
-          }}
-        >
-          <h2
-            style={{
-              fontSize: "14px",
-              marginBottom: "10px",
-              color: "#7fc7ff",
-              textTransform: "uppercase",
-              letterSpacing: "1px"
-            }}
-          >
-            Device Config
-          </h2>
-          <div style={{ opacity: 0.6 }}>Configuration panel coming soon…</div>
-        </div>
-      </div>
-
       <div
         style={{
-          height: "160px",
-          backgroundColor: "#0f0f0f",
-          borderTop: "1px solid #1e1e1e",
-          padding: "12px",
-          overflowY: "auto"
+          flex: 1,
+          display: "flex",
+          flexDirection: "row",
+          overflow: "hidden"
         }}
       >
-        <h2
-          style={{
-            fontSize: "14px",
-            marginBottom: "10px",
-            color: "#7fc7ff",
-            textTransform: "uppercase",
-            letterSpacing: "1px"
+        <LeftPanel
+          devices={devices}
+          onSelect={handleDeviceSelect}
+          onAdd={(d) => {
+            setDevices((prev) => [...prev, d]);
+            addLog(`Added device: ${d.hostname}`);
           }}
-        >
-          Terminal / Logs
-        </h2>
-        <div style={{ opacity: 0.6 }}>Terminal output coming soon…</div>
+        />
+
+        <div style={{ flex: 1, borderLeft: "1px solid #1f2937", borderRight: "1px solid #1f2937" }}>
+          <Canvas devices={devices} onSelect={handleDeviceSelect} />
+        </div>
+
+        <RightPanel
+          selectedDevice={selectedDevice}
+          onUpdate={handleDeviceUpdate}
+        />
       </div>
+
+      <BottomPanel logs={logs} onCommand={handleCommand} />
     </div>
   );
 }
