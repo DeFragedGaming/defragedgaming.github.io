@@ -76,6 +76,8 @@ export default function LabsOverview() {
           <LabCard
             title="Password Hashing Lab"
             description="Explore hashing algorithms, salts, and secure password storage."
+            link="/tools/hash-playground"
+            active
           />
 
           <LabCard

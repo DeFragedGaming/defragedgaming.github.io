@@ -1,464 +1,662 @@
-import React, { useState, useMemo } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import Layout from "@theme/Layout";
 
+type PhaseKey = "fundamentals" | "salting" | "stretching" | "storage" | "attacks";
 
-type Mode = "hash" | "encode";
+type PhaseConfig = {
+  key: PhaseKey;
+  label: string;
+  badge: string;
+  headline: string;
+  description: string;
+  attackerFocus: string;
+  defenderFocus: string;
+  observations: string[];
+};
 
-type HashAlgorithm = "SHA-256" | "SHA-1" | "SHA-384" | "SHA-512" | "MD5";
-type EncodingAlgorithm = "Base64" | "Hex" | "URL";
+type AttackerLineTone = "default" | "muted" | "warn" | "danger";
 
-interface HistoryItem {
+type AttackerLine = {
   id: string;
-  mode: Mode;
-  algorithm: string;
-  input: string;
-  output: string;
-  timestamp: string;
-}
+  text: string;
+  tone: AttackerLineTone;
+};
 
-const hashAlgorithms: HashAlgorithm[] = [
-  "SHA-256",
-  "SHA-1",
-  "SHA-384",
-  "SHA-512",
-  "MD5",
+type EventSeverity = "info" | "strong" | "neutral";
+
+type EventEntry = {
+  id: string;
+  label: string;
+  body: string;
+  severity: EventSeverity;
+  timestamp: string;
+};
+
+type AlgorithmKey = "SHA-256" | "SHA-1";
+
+const phases: PhaseConfig[] = [
+  {
+    key: "fundamentals",
+    label: "Fundamentals",
+    badge: "Concept",
+    headline: "From raw passwords to irreversible digests.",
+    description:
+      "This phase focuses on the core idea of password hashing: transforming a human-chosen secret into a fixed-length, irreversible digest. The goal is to ensure that even if an attacker steals the database, they cannot easily recover the original passwords.",
+    attackerFocus:
+      "The attacker wants direct access to raw passwords or weakly protected hashes that can be reversed or guessed quickly.",
+    defenderFocus:
+      "The defender wants to ensure that no raw passwords are ever stored and that hashes are produced using modern, collision-resistant algorithms.",
+    observations: [
+      "The same password and algorithm always produce the same hash.",
+      "Small changes in the password completely change the resulting hash.",
+      "Hash length is fixed for a given algorithm, regardless of password length."
+    ]
+  },
+  {
+    key: "salting",
+    label: "Salting",
+    badge: "Defense",
+    headline: "Breaking precomputed tables with unique salts.",
+    description:
+      "Salts ensure that identical passwords do not produce identical hashes across users or systems. This prevents attackers from using precomputed rainbow tables and makes large-scale reuse of work much harder.",
+    attackerFocus:
+      "The attacker prefers unsalted hashes so that one precomputed table can attack many accounts at once.",
+    defenderFocus:
+      "The defender generates a unique, random salt per credential and stores it alongside the hash so verification remains possible.",
+    observations: [
+      "Different salts produce different hashes for the same password.",
+      "Salts are not secret; they are stored with the hash.",
+      "Random, per-user salts make rainbow tables ineffective."
+    ]
+  },
+  {
+    key: "stretching",
+    label: "stretching",
+    badge: "Defense",
+    headline: "Trading CPU cycles for attacker pain.",
+    description:
+      "Key stretching increases the computational cost of hashing. Legitimate users only pay this cost during login, but attackers must pay it for every guess in an offline attack.",
+    attackerFocus:
+      "The attacker wants low-cost hashes so they can test billions of guesses per second on GPUs or ASICs.",
+    defenderFocus:
+      "The defender tunes iteration counts or uses memory-hard algorithms to slow down brute-force attempts while keeping login latency acceptable.",
+    observations: [
+      "Higher iteration counts increase the time required to compute a hash.",
+      "Attackers must pay the same cost for each password guess.",
+      "There is a balance between user experience and brute-force resistance."
+    ]
+  },
+  {
+    key: "storage",
+    label: "Storage",
+    badge: "Implementation",
+    headline: "Encoding parameters, salts, and hashes safely.",
+    description:
+      "Password storage formats encode the algorithm, parameters, salt, and hash in a single record. This allows the system to verify passwords later and migrate to stronger settings over time.",
+    attackerFocus:
+      "The attacker inspects storage formats to identify weak algorithms, low iteration counts, or missing salts.",
+    defenderFocus:
+      "The defender uses explicit, self-describing formats that make verification and future migrations predictable and safe.",
+    observations: [
+      "Storing algorithm and parameters enables flexible verification.",
+      "Consistent formats simplify migrations and audits.",
+      "Compromised storage should not reveal raw passwords."
+    ]
+  },
+  {
+    key: "attacks",
+    label: "Attack Surface",
+    badge: "Threat",
+    headline: "Reading hashes like an attacker would.",
+    description:
+      "In this phase, you interpret the configuration as an attacker. Weak algorithms, missing salts, and low iteration counts translate directly into faster cracking and higher risk.",
+    attackerFocus:
+      "The attacker prioritizes weak hashes and misconfigurations to maximize success with minimal cost.",
+    defenderFocus:
+      "The defender continuously reviews stored hashes and configuration to phase out weak settings before they are exploited.",
+    observations: [
+      "Low iteration counts enable high-speed offline cracking.",
+      "Missing salts allow reuse of precomputed hashes.",
+      "Legacy algorithms like MD5 or SHA-1 are considered unsafe for password storage."
+    ]
+  }
 ];
 
-const encodingAlgorithms: EncodingAlgorithm[] = ["Base64", "Hex", "URL"];
+const algorithms: { key: AlgorithmKey; label: string; digestName: AlgorithmKey; bitLength: number }[] = [
+  { key: "SHA-256", label: "SHA-256 (recommended baseline)", digestName: "SHA-256", bitLength: 256 },
+  { key: "SHA-1", label: "SHA-1 (legacy, weak)", digestName: "SHA-1", bitLength: 160 }
+];
 
-function formatTimestamp(date = new Date()): string {
-  return date.toLocaleTimeString(undefined, {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
+function nowTimeString(): string {
+  const d = new Date();
+  const hh = d.getHours().toString().padStart(2, "0");
+  const mm = d.getMinutes().toString().padStart(2, "0");
+  const ss = d.getSeconds().toString().padStart(2, "0");
+  return `${hh}:${mm}:${ss}`;
 }
 
-async function computeHash(algorithm: HashAlgorithm, input: string): Promise<string> {
+function randomId(prefix: string): string {
+  return `${prefix}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function toHex(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  let hex = "";
+  for (let i = 0; i < bytes.length; i += 1) {
+    const h = bytes[i].toString(16).padStart(2, "0");
+    hex += h;
+  }
+  return hex;
+}
+
+async function hashOnce(algorithm: AlgorithmKey, data: string): Promise<string> {
   const encoder = new TextEncoder();
-  const data = encoder.encode(input);
-
-  if (algorithm === "MD5") {
-    // Lightweight MD5 fallback (not cryptographically secure, for lab/demo only)
-    const { default: SparkMD5 } = await import("spark-md5");
-    return SparkMD5.hash(input);
-  }
-
-  const subtleAlgo =
-    algorithm === "SHA-1"
-      ? "SHA-1"
-      : algorithm === "SHA-384"
-      ? "SHA-384"
-      : algorithm === "SHA-512"
-      ? "SHA-512"
-      : "SHA-256";
-
-  const digest = await crypto.subtle.digest(subtleAlgo, data);
-  const hashArray = Array.from(new Uint8Array(digest));
-  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+  const encoded = encoder.encode(data);
+  const digest = await crypto.subtle.digest(algorithm, encoded);
+  return toHex(digest);
 }
 
-function encodeValue(algorithm: EncodingAlgorithm, input: string): string {
-  if (!input) return "";
-
-  switch (algorithm) {
-    case "Base64": {
-      if (typeof window === "undefined") return "";
-      return btoa(unescape(encodeURIComponent(input)));
+async function stretchHash(
+  algorithm: AlgorithmKey,
+  password: string,
+  salt: string,
+  iterations: number,
+  onCheckpoint: (iteration: number, total: number) => void
+): Promise<string> {
+  const base = `${password}:${salt}`;
+  let current = base;
+  const total = Math.max(1, iterations);
+  const checkpoints = new Set<number>([
+    1,
+    Math.floor(total * 0.25),
+    Math.floor(total * 0.5),
+    Math.floor(total * 0.75),
+    total
+  ]);
+  for (let i = 1; i <= total; i += 1) {
+    current = await hashOnce(algorithm, current);
+    if (checkpoints.has(i)) {
+      onCheckpoint(i, total);
     }
-    case "Hex": {
-      const encoder = new TextEncoder();
-      const bytes = encoder.encode(input);
-      return Array.from(bytes)
-        .map((b) => b.toString(16).padStart(2, "0"))
-        .join("");
-    }
-    case "URL": {
-      return encodeURIComponent(input);
-    }
-    default:
-      return "";
   }
+  return current;
 }
 
-const UltraHashingPlayground: React.FC = () => {
-  const [mode, setMode] = useState<Mode>("hash");
-  const [hashAlgo, setHashAlgo] = useState<HashAlgorithm>("SHA-256");
-  const [encodingAlgo, setEncodingAlgo] = useState<EncodingAlgorithm>("Base64");
-  const [input, setInput] = useState("");
-  const [output, setOutput] = useState("");
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [history, setHistory] = useState<HistoryItem[]>([]);
+function formatStorageRecord(algorithm: AlgorithmKey, iterations: number, salt: string, hash: string): string {
+  const safeSalt = salt || "";
+  const safeIterations = Number.isFinite(iterations) && iterations > 0 ? iterations : 1;
+  return `${algorithm}$${safeIterations}$${safeSalt}$${hash}`;
+}
 
-  const activeAlgorithmLabel = useMemo(
-    () => (mode === "hash" ? hashAlgo : encodingAlgo),
-    [mode, hashAlgo, encodingAlgo]
+function classifySeverity(iterations: number, algorithm: AlgorithmKey): EventSeverity {
+  if (algorithm === "SHA-1") {
+    return "strong";
+  }
+  if (iterations < 1000) {
+    return "strong";
+  }
+  if (iterations < 10000) {
+    return "info";
+  }
+  return "neutral";
+}
+
+const HashPlayground: React.FC = () => {
+  const [activePhase, setActivePhase] = useState<PhaseKey>("fundamentals");
+  const [password, setPassword] = useState<string>("");
+  const [salt, setSalt] = useState<string>("");
+  const [algorithm, setAlgorithm] = useState<AlgorithmKey>("SHA-256");
+  const [iterations, setIterations] = useState<number>(10000);
+  const [hashOutput, setHashOutput] = useState<string>("");
+  const [storageRecord, setStorageRecord] = useState<string>("");
+  const [attackerLines, setAttackerLines] = useState<AttackerLine[]>([
+    {
+      id: randomId("line"),
+      text: "$ Waiting for defender configuration...",
+      tone: "muted"
+    }
+  ]);
+  const [events, setEvents] = useState<EventEntry[]>([]);
+
+  const currentPhase = useMemo(
+    () => phases.find((p) => p.key === activePhase) ?? phases[0],
+    [activePhase]
   );
 
-  const handleRun = async () => {
-    if (!input.trim()) {
-      setOutput("");
+  const currentAlgorithmMeta = useMemo(
+    () => algorithms.find((a) => a.key === algorithm) ?? algorithms[0],
+    [algorithm]
+  );
+
+  const addAttackerLine = useCallback((text: string, tone: AttackerLineTone = "default") => {
+    setAttackerLines((prev) => [...prev, { id: randomId("line"), text, tone }]);
+  }, []);
+
+  const addEvent = useCallback((label: string, body: string, severity: EventSeverity) => {
+    setEvents((prev) => [
+      {
+        id: randomId("event"),
+        label,
+        body,
+        severity,
+        timestamp: nowTimeString()
+      },
+      ...prev
+    ]);
+  }, []);
+
+  const handlePhaseChange = useCallback(
+    (phase: PhaseKey) => {
+      setActivePhase(phase);
+      addAttackerLine(`$ Observing defender behavior in phase: ${phases.find((p) => p.key === phase)?.label ?? phase}`, "muted");
+      addEvent(
+        "Phase changed",
+        `Switched to ${phases.find((p) => p.key === phase)?.label ?? phase} phase.`,
+        "info"
+      );
+    },
+    [addAttackerLine, addEvent]
+  );
+
+  const handleGenerateHash = useCallback(async () => {
+    if (!password) {
+      addAttackerLine("$ Defender did not provide a password. No hash generated.", "warn");
+      addEvent("Missing input", "Password is required to generate a hash.", "info");
       return;
     }
+    if (!("crypto" in window) || !window.crypto.subtle) {
+      addAttackerLine("$ Browser does not support Web Crypto API. Cannot compute hash.", "danger");
+      addEvent("Environment limitation", "Web Crypto API is not available in this environment.", "strong");
+      return;
+    }
+    const effectiveSalt = salt || "";
+    const effectiveIterations = Number.isFinite(iterations) && iterations > 0 ? iterations : 1;
+    addAttackerLine(
+      `$ Defender configured ${algorithm} with ${effectiveIterations.toLocaleString()} iterations and salt length ${effectiveSalt.length}.`,
+      "muted"
+    );
+    addEvent(
+      "Hashing started",
+      `Computing hash using ${algorithm} with ${effectiveIterations.toLocaleString()} iterations.`,
+      "info"
+    );
+    const start = performance.now();
+    const finalHash = await stretchHash(algorithm, password, effectiveSalt, effectiveIterations, (i, total) => {
+      addAttackerLine(
+        `$ Offline cracking cost checkpoint at iteration ${i.toLocaleString()} of ${total.toLocaleString()}.`,
+        "muted"
+      );
+    });
+    const end = performance.now();
+    const durationMs = end - start;
+    const record = formatStorageRecord(algorithm, effectiveIterations, effectiveSalt, finalHash);
+    setHashOutput(finalHash);
+    setStorageRecord(record);
+    const severity = classifySeverity(effectiveIterations, algorithm);
+    const durationLabel =
+      durationMs < 50
+        ? "Extremely cheap to compute. Attractive for attackers."
+        : durationMs < 250
+        ? "Moderate cost. Better than defaults, but still improvable."
+        : "Noticeable cost. Stronger resistance to brute-force.";
+    addAttackerLine(
+      `$ Observed hash length ${finalHash.length} hex characters (${currentAlgorithmMeta.bitLength} bits).`,
+      "default"
+    );
+    addAttackerLine(
+      `$ Single hash computation took approximately ${durationMs.toFixed(1)} ms on this device.`,
+      severity === "strong" ? "danger" : severity === "info" ? "warn" : "default"
+    );
+    addEvent(
+      "Hash generated",
+      `Hash computed in ${durationMs.toFixed(1)} ms. ${durationLabel}`,
+      severity
+    );
+  }, [password, salt, iterations, algorithm, addAttackerLine, addEvent, currentAlgorithmMeta.bitLength]);
 
-    setIsProcessing(true);
-    try {
-      let result = "";
-
-      if (mode === "hash") {
-        result = await computeHash(hashAlgo, input);
-      } else {
-        result = encodeValue(encodingAlgo, input);
+  const handleClear = useCallback(() => {
+    setPassword("");
+    setSalt("");
+    setHashOutput("");
+    setStorageRecord("");
+    setIterations(10000);
+    setAttackerLines([
+      {
+        id: randomId("line"),
+        text: "$ State cleared. Waiting for new configuration...",
+        tone: "muted"
       }
+    ]);
+    setEvents([]);
+  }, []);
 
-      setOutput(result);
+  const handleSample = useCallback(() => {
+    const samplePassword = "Winter2026!";
+    const sampleSalt = "user-1234-salt";
+    const sampleIterations = 15000;
+    setPassword(samplePassword);
+    setSalt(sampleSalt);
+    setIterations(sampleIterations);
+    setAlgorithm("SHA-256");
+    addAttackerLine(
+      "$ Defender loaded a sample configuration: non-trivial password, per-user salt, and elevated iteration count.",
+      "default"
+    );
+    addEvent(
+      "Sample loaded",
+      "Sample password, salt, and iteration count have been populated for exploration.",
+      "info"
+    );
+  }, [addAttackerLine, addEvent]);
 
-      const item: HistoryItem = {
-        id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-        mode,
-        algorithm: activeAlgorithmLabel,
-        input,
-        output: result,
-        timestamp: formatTimestamp(),
-      };
-
-      setHistory((prev) => [item, ...prev].slice(0, 20));
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  const handleClear = () => {
-    setInput("");
-    setOutput("");
-  };
-
-  const handleHistoryClick = (item: HistoryItem) => {
-    setInput(item.input);
-    setOutput(item.output);
-    if (item.mode === "hash") {
-      setMode("hash");
-      setHashAlgo(item.algorithm as HashAlgorithm);
-    } else {
-      setMode("encode");
-      setEncodingAlgo(item.algorithm as EncodingAlgorithm);
-    }
-  };
+  const handleIterationsChange = useCallback(
+    (value: string) => {
+      const parsed = parseInt(value, 10);
+      if (Number.isNaN(parsed)) {
+        setIterations(0);
+        return;
+      }
+      const clamped = Math.max(1, Math.min(500000, parsed));
+      setIterations(clamped);
+    },
+    []
+  );
 
   return (
-    <div className="relative mx-auto flex w-full max-w-6xl flex-col gap-6 rounded-2xl border border-slate-800/70 bg-slate-950/80 p-6 shadow-[0_0_80px_rgba(15,23,42,0.9)] ring-1 ring-cyan-500/20 backdrop-blur">
-      {/* Glow / brand accent */}
-      <div className="pointer-events-none absolute inset-0 -z-10 rounded-2xl bg-[radial-gradient(circle_at_top,_rgba(34,211,238,0.18),_transparent_55%),_radial-gradient(circle_at_bottom,_rgba(59,130,246,0.18),_transparent_55%)]" />
+    <div className="flex flex-col gap-4 rounded-2xl border border-slate-900 bg-slate-950/80 p-4 shadow-2xl shadow-black/70">
+      
 
-      {/* Header */}
-      <div className="flex flex-col gap-3 border-b border-slate-800/80 pb-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-400/80">
-            CyberTrace Ultra Lab
-          </p>
-          <h1 className="mt-1 text-2xl font-semibold text-slate-50">
-            Ultra Hashing &amp; Encoding Playground
-          </h1>
-          <p className="mt-1 max-w-2xl text-sm text-slate-400">
-            Experiment with modern hashing and encoding schemes in a safe, visual lab. Great for demos,
-            teaching, and quick sanity checks during investigations.
-          </p>
-        </div>
-        <div className="flex items-center gap-2 text-xs text-slate-400">
-          <span className="inline-flex h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.9)]" />
-          <span className="font-mono uppercase tracking-[0.18em] text-emerald-300/90">
-            Live
-          </span>
-        </div>
-      </div>
-
-      {/* Mode + algorithm row */}
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div className="inline-flex items-center gap-2 rounded-full border border-slate-800 bg-slate-900/70 p-1 text-xs">
+      <nav className="flex gap-2 border-b border-slate-900 pb-1">
+        {phases.map((phase) => (
           <button
+            key={phase.key}
             type="button"
-            onClick={() => setMode("hash")}
-            className={`rounded-full px-3 py-1.5 font-medium transition ${
-              mode === "hash"
-                ? "bg-cyan-500 text-slate-950 shadow-[0_0_18px_rgba(34,211,238,0.7)]"
-                : "text-slate-300 hover:bg-slate-800/80"
-            }`}
+            onClick={() => handlePhaseChange(phase.key)}
+            className={[
+              "flex-1 rounded-full border px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] transition",
+              activePhase === phase.key
+                ? "border-indigo-400/80 bg-gradient-to-r from-indigo-600/70 to-sky-500/60 text-slate-50 shadow-lg shadow-indigo-900/60"
+                : "border-transparent bg-transparent text-slate-400 hover:border-slate-700 hover:bg-slate-900/80 hover:text-slate-100"
+            ].join(" ")}
           >
-            Hashing
+            {phase.label}
           </button>
-          <button
-            type="button"
-            onClick={() => setMode("encode")}
-            className={`rounded-full px-3 py-1.5 font-medium transition ${
-              mode === "encode"
-                ? "bg-indigo-500 text-slate-950 shadow-[0_0_18px_rgba(129,140,248,0.7)]"
-                : "text-slate-300 hover:bg-slate-800/80"
-            }`}
-          >
-            Encoding
-          </button>
-        </div>
+        ))}
+      </nav>
 
-        <div className="flex flex-wrap items-center gap-3 text-xs">
-          <div className="flex items-center gap-2 rounded-full border border-slate-800 bg-slate-900/70 px-3 py-1.5">
-            <span className="text-slate-400">Active:</span>
-            <span className="font-mono text-cyan-300">{activeAlgorithmLabel}</span>
-          </div>
-          <div className="flex items-center gap-2 rounded-full border border-slate-800 bg-slate-900/70 px-3 py-1.5">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-cyan-400" />
-            <span className="text-slate-400">Client‑side only · No data leaves this page</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Main grid */}
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-        {/* Left: input/output */}
-        <div className="flex flex-col gap-4">
-          {/* Algorithm selector */}
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-800 bg-slate-950/80 p-3">
-            <div className="flex flex-col">
-              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-                {mode === "hash" ? "Hash algorithm" : "Encoding scheme"}
-              </span>
-              <span className="mt-1 text-sm text-slate-200">
-                Choose the algorithm you want to apply to the input.
-              </span>
+      <section className="grid grid-cols-1 gap-3 rounded-2xl border border-slate-900 bg-slate-950/80 p-3 md:grid-cols-[2.1fr,1.9fr,1.6fr]">
+        <div className="flex flex-col gap-2 rounded-2xl border border-slate-900 bg-slate-950/90 p-3">
+          <div className="mb-1 flex items-center justify-between">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+              Attacker
             </div>
-            <div className="flex flex-wrap gap-2">
-              {(mode === "hash" ? hashAlgorithms : encodingAlgorithms).map((algo) => {
-                const isActive =
-                  mode === "hash"
-                    ? algo === hashAlgo
-                    : algo === encodingAlgo;
-
-                return (
-                  <button
-                    key={algo}
-                    type="button"
-                    onClick={() =>
-                      mode === "hash"
-                        ? setHashAlgo(algo as HashAlgorithm)
-                        : setEncodingAlgo(algo as EncodingAlgorithm)
-                    }
-                    className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
-                      isActive
-                        ? "border-cyan-400 bg-cyan-500/10 text-cyan-200 shadow-[0_0_14px_rgba(34,211,238,0.5)]"
-                        : "border-slate-700 bg-slate-900/80 text-slate-300 hover:border-cyan-500/60 hover:text-cyan-200"
-                    }`}
-                  >
-                    {algo}
-                  </button>
-                );
-              })}
+            <div className="rounded-full border border-slate-800 bg-slate-900/80 px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.16em] text-slate-300">
+              External perspective
             </div>
           </div>
-
-          {/* Input / output panels */}
-          <div className="grid gap-4 md:grid-cols-2">
-            {/* Input */}
-            <div className="flex flex-col rounded-xl border border-slate-800 bg-slate-950/80 p-3">
-              <div className="mb-2 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="h-1.5 w-1.5 rounded-full bg-cyan-400" />
-                  <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
-                    Input
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleClear}
-                  className="text-xs text-slate-400 hover:text-cyan-300"
+          <div className="flex-1 overflow-hidden rounded-xl border border-slate-950 bg-gradient-to-b from-slate-950 to-slate-950/90">
+            <div className="h-64 overflow-y-auto px-3 py-2 font-mono text-[11px] text-slate-100">
+              {attackerLines.map((line) => (
+                <div
+                  key={line.id}
+                  className={[
+                    "whitespace-pre-wrap leading-relaxed",
+                    line.tone === "muted"
+                      ? "text-slate-500"
+                      : line.tone === "warn"
+                      ? "text-amber-300"
+                      : line.tone === "danger"
+                      ? "text-rose-300"
+                      : "text-slate-100"
+                  ].join(" ")}
                 >
-                  Clear
-                </button>
+                  {line.text}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-2 rounded-2xl border border-slate-900 bg-slate-950/90 p-3">
+          <div className="mb-1 flex items-center justify-between">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+              Defender
+            </div>
+            <div className="rounded-full border border-slate-800 bg-slate-900/80 px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.16em] text-slate-300">
+              Configuration surface
+            </div>
+          </div>
+          <div className="flex flex-col gap-3">
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                  Password
+                </label>
+                <input
+                  type="text"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter a candidate password"
+                  className="w-full rounded-full border border-slate-800 bg-slate-950 px-3 py-1.5 text-xs text-slate-100 outline-none ring-0 transition focus:border-indigo-400 focus:ring-1 focus:ring-indigo-500"
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                  Salt
+                </label>
+                <input
+                  type="text"
+                  value={salt}
+                  onChange={(e) => setSalt(e.target.value)}
+                  placeholder="Optional per-user salt"
+                  className="w-full rounded-full border border-slate-800 bg-slate-950 px-3 py-1.5 text-xs text-slate-100 outline-none ring-0 transition focus:border-indigo-400 focus:ring-1 focus:ring-indigo-500"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                  Algorithm
+                </label>
+                <select
+                  value={algorithm}
+                  onChange={(e) => setAlgorithm(e.target.value as AlgorithmKey)}
+                  className="w-full rounded-full border border-slate-800 bg-slate-950 px-3 py-1.5 text-[11px] text-slate-100 outline-none ring-0 transition focus:border-indigo-400 focus:ring-1 focus:ring-indigo-500"
+                >
+                  {algorithms.map((algo) => (
+                    <option key={algo.key} value={algo.key}>
+                      {algo.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                  Iterations
+                </label>
+                <input
+                  type="number"
+                  min={1}
+                  max={500000}
+                  value={iterations}
+                  onChange={(e) => handleIterationsChange(e.target.value)}
+                  className="w-full rounded-full border border-slate-800 bg-slate-950 px-3 py-1.5 text-xs text-slate-100 outline-none ring-0 transition focus:border-indigo-400 focus:ring-1 focus:ring-indigo-500"
+                />
+                <div className="text-[10px] text-slate-500">
+                  Current cost: {iterations.toLocaleString()} iterations of {algorithm}.
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <button
+                type="button"
+                onClick={handleGenerateHash}
+                className="rounded-full border border-indigo-400/80 bg-gradient-to-r from-indigo-600/80 to-sky-500/80 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-50 shadow-md shadow-indigo-900/70 transition hover:shadow-lg hover:shadow-indigo-900"
+              >
+                Generate Hash
+              </button>
+              <button
+                type="button"
+                onClick={handleSample}
+                className="rounded-full border border-slate-800 bg-slate-900/80 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-200 transition hover:border-slate-600 hover:bg-slate-900"
+              >
+                Load Sample
+              </button>
+              <button
+                type="button"
+                onClick={handleClear}
+                className="rounded-full border border-slate-800 bg-slate-950 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400 transition hover:border-rose-500/70 hover:bg-rose-950/40 hover:text-rose-200"
+              >
+                Clear
+              </button>
+            </div>
+            <div className="flex flex-col gap-2 rounded-xl border border-slate-900 bg-slate-950/90 p-2">
+              <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                Hash Output ({currentAlgorithmMeta.bitLength}-bit)
               </div>
               <textarea
-                className="min-h-[160px] flex-1 resize-none rounded-lg border border-slate-800 bg-slate-950/90 p-3 text-sm text-slate-100 outline-none ring-0 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/60"
-                placeholder={
-                  mode === "hash"
-                    ? "Paste or type the value you want to hash..."
-                    : "Paste or type the value you want to encode..."
-                }
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
+                value={hashOutput}
+                readOnly
+                placeholder="Hash will appear here once generated."
+                className="h-20 w-full resize-none rounded-lg border border-slate-900 bg-slate-950 px-2.5 py-1.5 font-mono text-[11px] text-slate-100 outline-none ring-0"
               />
-              <p className="mt-2 text-[11px] text-slate-500">
-                Tip: Use this to show how the same input produces different outputs across algorithms.
-              </p>
-            </div>
-
-            {/* Output */}
-            <div className="flex flex-col rounded-xl border border-slate-800 bg-slate-950/80 p-3">
-              <div className="mb-2 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                  <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
-                    Output
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  disabled={!output}
-                  onClick={() => {
-                    if (!output) return;
-                    navigator.clipboard?.writeText(output);
-                  }}
-                  className="text-xs text-slate-400 hover:text-emerald-300 disabled:cursor-not-allowed disabled:text-slate-600"
-                >
-                  Copy
-                </button>
+              <div className="text-[10px] text-slate-500">
+                Length: {hashOutput ? `${hashOutput.length} hex characters` : "–"}
               </div>
-              <pre className="min-h-[160px] flex-1 overflow-x-auto rounded-lg border border-slate-800 bg-slate-950/90 p-3 text-[11px] leading-relaxed text-emerald-200">
-                {output || (
-                  <span className="text-slate-500">
-                    Run the lab to see the transformed output here.
-                  </span>
-                )}
-              </pre>
-              <p className="mt-2 text-[11px] text-slate-500">
-                {mode === "hash"
-                  ? "Hashes are one‑way: you can’t reverse them back to the original input."
-                  : "Encodings are reversible: they’re for representation, not security."}
-              </p>
             </div>
-          </div>
-
-          {/* Run button */}
-          <div className="flex items-center justify-between gap-3">
-            <div className="text-[11px] text-slate-500">
-              All operations run in your browser. Great for live demos without leaking sample data.
+            <div className="flex flex-col gap-2 rounded-xl border border-slate-900 bg-slate-950/90 p-2">
+              <div className="flex items-center justify-between">
+                <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                  Storage Model
+                </div>
+                <div className="rounded-full border border-slate-800 bg-slate-900/80 px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.16em] text-slate-300">
+                  algo$iterations$salt$hash
+                </div>
+              </div>
+              <div className="rounded-lg border border-slate-900 bg-slate-950 px-2.5 py-1.5 font-mono text-[11px] text-slate-100">
+                {storageRecord || "Record will appear here once a hash is generated."}
+              </div>
             </div>
-            <button
-              type="button"
-              onClick={handleRun}
-              disabled={isProcessing || !input.trim()}
-              className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-cyan-500 via-sky-500 to-indigo-500 px-5 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-950 shadow-[0_0_24px_rgba(56,189,248,0.8)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {isProcessing ? (
-                <>
-                  <span className="h-3 w-3 animate-spin rounded-full border-2 border-slate-900 border-t-transparent" />
-                  Running…
-                </>
-              ) : (
-                <>
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                  Run lab
-                </>
-              )}
-            </button>
           </div>
         </div>
 
-        {/* Right: history / explainer */}
-        <div className="flex flex-col gap-4">
-          {/* History */}
-          <div className="flex flex-col rounded-xl border border-slate-800 bg-slate-950/80 p-3">
-            <div className="mb-2 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="h-1.5 w-1.5 rounded-full bg-sky-400" />
-                <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
-                  Recent runs
-                </span>
-              </div>
-              {history.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setHistory([])}
-                  className="text-[11px] text-slate-400 hover:text-rose-300"
-                >
-                  Clear history
-                </button>
-              )}
+        <div className="flex flex-col gap-2 rounded-2xl border border-slate-900 bg-slate-950/90 p-3">
+          <div className="mb-1 flex items-center justify-between">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+              Recent Events
             </div>
-            {history.length === 0 ? (
-              <p className="text-[11px] text-slate-500">
-                Your last 20 runs will appear here. Use this to compare algorithms side‑by‑side during
-                walkthroughs.
-              </p>
-            ) : (
-              <div className="flex max-h-[260px] flex-col gap-2 overflow-y-auto pr-1 text-[11px]">
-                {history.map((item) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => handleHistoryClick(item)}
-                    className="group flex flex-col gap-1 rounded-lg border border-slate-800 bg-slate-950/80 px-2.5 py-2 text-left transition hover:border-cyan-500/70 hover:bg-slate-900/80"
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="inline-flex items-center gap-1.5 rounded-full bg-slate-900/90 px-2 py-0.5">
-                        <span
-                          className={`h-1.5 w-1.5 rounded-full ${
-                            item.mode === "hash" ? "bg-cyan-400" : "bg-indigo-400"
-                          }`}
-                        />
-                        <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-300">
-                          {item.mode === "hash" ? "Hash" : "Encode"} · {item.algorithm}
-                        </span>
-                      </div>
-                      <span className="font-mono text-[10px] text-slate-500">
-                        {item.timestamp}
-                      </span>
-                    </div>
-                    <div className="line-clamp-1 font-mono text-[10px] text-slate-400">
-                      in: <span className="text-slate-300">{item.input}</span>
-                    </div>
-                    <div className="line-clamp-1 font-mono text-[10px] text-emerald-300 group-hover:text-emerald-200">
-                      out: <span>{item.output}</span>
-                    </div>
-                  </button>
-                ))}
+            <div className="rounded-full border border-slate-800 bg-slate-900/80 px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.16em] text-slate-300">
+              Timeline
+            </div>
+          </div>
+          <div className="h-64 overflow-y-auto space-y-2">
+            {events.length === 0 && (
+              <div className="rounded-lg border border-dashed border-slate-800 bg-slate-950/80 px-2.5 py-2 text-[11px] text-slate-500">
+                Hashing activity, configuration changes, and risk signals will appear here as you interact with the lab.
               </div>
             )}
-          </div>
-
-          {/* Explainer / teaching card */}
-          <div className="flex flex-col gap-2 rounded-xl border border-slate-800 bg-gradient-to-br from-slate-950 via-slate-950 to-slate-900/90 p-3">
-            <div className="flex items-center gap-2">
-              <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-slate-900 text-xs text-cyan-300">
-                
-              </span>
-              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
-                Teaching notes
-              </span>
-            </div>
-            <ul className="ml-4 list-disc space-y-1 text-[11px] text-slate-400">
-              <li>
-                <span className="text-slate-300">Hashing:</span> one‑way, fixed‑length output. Great for
-                integrity checks and password storage (with salts and slow KDFs).
-              </li>
-              <li>
-                <span className="text-slate-300">Encoding:</span> reversible representation. Use it for
-                transport and formatting, not security.
-              </li>
-              <li>
-                Show how the same input looks across SHA‑256 vs SHA‑1 vs MD5, and why modern suites prefer
-                SHA‑2+.
-              </li>
-              <li>
-                Pair this lab with logs or packet captures in other CyberTrace labs to show where hashes and
-                encodings appear in the wild.
-              </li>
-            </ul>
+            {events.map((event) => (
+              <div
+                key={event.id}
+                className="flex flex-col gap-1 rounded-lg border border-slate-900 bg-slate-950 px-2.5 py-2"
+              >
+                <div className="flex items-center justify-between text-[10px] text-slate-400">
+                  <div className="font-semibold uppercase tracking-[0.18em]">
+                    {event.label}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-slate-500">{event.timestamp}</span>
+                    <span
+                      className={[
+                        "rounded-full border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.16em]",
+                        event.severity === "strong"
+                          ? "border-rose-500/80 bg-rose-950/40 text-rose-200"
+                          : event.severity === "info"
+                          ? "border-sky-500/80 bg-sky-950/40 text-sky-200"
+                          : "border-slate-700 bg-slate-900/80 text-slate-300"
+                      ].join(" ")}
+                    >
+                      {event.severity === "strong"
+                        ? "High Impact"
+                        : event.severity === "info"
+                        ? "Info"
+                        : "Event"}
+                    </span>
+                  </div>
+                </div>
+                <div className="text-[11px] text-slate-100">
+                  {event.body}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
-      </div>
+      </section>
+
+      <section className="rounded-2xl border border-slate-900 bg-slate-950/90 p-3">
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-300">
+            {currentPhase.label}
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="rounded-full border border-slate-800 bg-slate-900/80 px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.16em] text-slate-300">
+              {currentPhase.badge}
+            </span>
+          </div>
+        </div>
+        <div className="mb-2 text-sm font-medium text-slate-100">
+          {currentPhase.headline}
+        </div>
+        <p className="mb-3 text-[13px] leading-relaxed text-slate-300">
+          {currentPhase.description}
+        </p>
+        <div className="grid gap-3 md:grid-cols-2">
+          <div className="flex flex-col gap-1 rounded-xl border border-slate-900 bg-slate-950/90 p-2.5">
+            <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+              Attacker perspective
+            </div>
+            <div className="text-[12px] text-slate-200">
+              {currentPhase.attackerFocus}
+            </div>
+          </div>
+          <div className="flex flex-col gap-1 rounded-xl border border-slate-900 bg-slate-950/90 p-2.5">
+            <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+              Defender objective
+            </div>
+            <div className="text-[12px] text-slate-200">
+              {currentPhase.defenderFocus}
+            </div>
+          </div>
+        </div>
+        <div className="mt-3">
+          <div className="mb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+            What you might observe
+          </div>
+          <ul className="ml-4 space-y-1 text-[12px] text-slate-200">
+            {currentPhase.observations.map((obs) => (
+              <li key={obs}>{obs}</li>
+            ))}
+          </ul>
+        </div>
+      </section>
     </div>
   );
 };
 
-export default function HashPlaygroundPage() {
+const LayoutComponent = Layout as React.ComponentType<{
+  children: React.ReactNode;
+  title?: string;
+  description?: string;
+}>;
+
+const HashPlaygroundPage: React.FC = () => {
   return (
-    <Layout>
-      <main className="bg-slate-950/95 py-10 text-slate-50 min-h-screen">
-        <div className="mx-auto w-full max-w-6xl px-4 md:px-6">
-
-        
-
-          <UltraHashingPlayground />
-
-        </div>
-      </main>
-    </Layout>
+    <LayoutComponent title="Password Hashing Lab" description="Explore hashing algorithms, salts, and secure password storage.">
+      <div className="container margin-vert--lg">
+        <HashPlayground />
+      </div>
+    </LayoutComponent>
   );
-}
+};
+
+export default HashPlaygroundPage;
