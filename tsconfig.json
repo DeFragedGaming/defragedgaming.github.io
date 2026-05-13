@@ -3,7 +3,7 @@
     "target": "ES2020",
     "module": "ESNext",
     "jsx": "react-jsx",
-    "moduleResolution": "Node",
+    "moduleResolution": "bundler",
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
@@ -11,14 +11,15 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
+    "ignoreDeprecations": "6.0",
     "types": ["@docusaurus/module-type-aliases"],
-    "baseUrl": ".",
+    "baseUrl": "./",
     "paths": {
-  "@theme/*": ["./src/theme/*"],
-  "@generated/*": ["./.docusaurus/*"],
-  "@site/*": ["./*"]
-},
-
+      "@theme/*": ["./src/theme/*"],
+      "@generated/*": ["./.docusaurus/*"],
+      "@site/*": ["./*"],
+      "@docusaurus/*": ["./node_modules/@docusaurus/*"]
+    },
     "lib": ["DOM", "DOM.Iterable", "ES2020"]
   },
   "include": ["src", "docusaurus.config.ts"]

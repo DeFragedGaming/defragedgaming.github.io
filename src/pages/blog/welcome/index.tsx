@@ -17,31 +17,30 @@ export default function WelcomeBlog() {
         <header className="blog-post-header">
           <h1>Welcome to the CyberTrace Blog</h1>
           <div className="blog-post-meta">
-            <span className="blog-post-tag">Update</span>
-            <span className="blog-post-date">February 2026</span>
+            <span className="blog-post-tag">Updated</span>
+            <span className="blog-post-date">May 2026</span>
           </div>
         </header>
 
         <section className="blog-post-section">
           <p className="blog-post-intro">
-            Welcome to the CyberTrace Blog the place where I document the
-            process of building the CyberTrace platform, the labs behind it, and
-            the engineering decisions that shape everything along the way.
+            Welcome to the CyberTrace Blog, where I capture my journey through the development of the CyberTrace platform, the lab work that goes into it, and the engineering choices made throughout the way.
           </p>
         </section>
 
         <section className="blog-post-section">
           <h2>Why This Blog Exists</h2>
           <p>
-            CyberTrace started as a personal experiment a space to build tools
-            I wish existed when I was learning cybersecurity. Over time, it’s
-            grown into a full ecosystem of labs, utilities, and write‑ups
-            designed to make security hands‑on instead of theoretical.
+            CyberTrace began as a personal experiment; a place where I could create the tools I wished existed during my learning journey in cybersecurity. As time passed, CyberTrace evolved to become an entire ecosystem of labs, utilities, and write-ups, transforming the study of security from theory to practice.
           </p>
           <p>
-            This blog is where I share the journey. Not polished marketing. Not
-            corporate fluff. Just real engineering, real security concepts, and
-            real progress.
+            Here is the place where I write about the process. No fancy marketing stuff.
+            No fluffy business speak. Only the engineering reality, security
+            concepts, and achievements – the late-night epiphanies, the design
+            decisions that make the difference, the failures that require starting
+            over, and the hard work of creating CyberTrace from scratch. Here you can
+            find all the truth about CyberTrace development, testing and the
+            platform itself.
           </p>
         </section>
 
@@ -52,16 +51,16 @@ export default function WelcomeBlog() {
             <li>Breakdowns of design decisions and architecture</li>
             <li>Cybersecurity fundamentals explained simply</li>
             <li>Behind‑the‑scenes updates on the CyberTrace platform</li>
+            <li>Reflections on the learning process and the state of cybersecurity education</li>
+            <li>Game design systems, mechanics, and player experience</li>
+
           </ul>
         </section>
 
         <section className="blog-post-section">
           <h2>Where CyberTrace Is Going</h2>
           <p>
-            My goal is to build a suite of tools that feel intentional,
-            educational, and realistic something that blends creativity with
-            technical depth. CyberTrace is still evolving, and this blog will
-            grow with it.
+            The objective is to develop a set of tools that are thoughtful, educational, and realistic — combining both creativity and technical expertise. CyberTrace is an evolving process, as is my blog.
           </p>
           <p>
             Whether you’re here for the labs, the engineering breakdowns, or the

@@ -75,8 +75,8 @@ export default function BlogHome() {
           <BlogCard
             title="Cybersecurity Fundamentals: Hashing"
             description="A beginner‑friendly explanation of hashing, salts, and why password storage matters."
-            date="Coming Soon"
-            link="hashing-basics"
+            date="May 2026"
+            link="May/05-13-2026"
             tag="Cybersecurity"
           />
 
