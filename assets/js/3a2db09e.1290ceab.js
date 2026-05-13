@@ -1,1 +1,0 @@
-"use strict";(globalThis.webpackChunkcybertrace_site=globalThis.webpackChunkcybertrace_site||[]).push([[8121],{8070(e){e.exports=JSON.parse('{"tags":[{"label":"intro","permalink":"/blog/tags/intro","count":1},{"label":"cybertrace","permalink":"/blog/tags/cybertrace","count":1},{"label":"update","permalink":"/blog/tags/update","count":1}]}')}}]);
