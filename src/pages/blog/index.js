@@ -81,6 +81,20 @@ export default function BlogHome() {
           />
 
           <BlogCard
+            title="CyberTrace: Signal Breach — Devlog #1 & Roadmap"
+            description="A look at the initial development stages and the roadmap for CyberTrace: Signal Breach."
+            date="May 2026"
+            link="May/05-14-2026"
+            tag="Game Development"
+          />
+          
+          
+          
+          
+          
+          
+          
+          <BlogCard
             title="Brute-Force Simulator Progress and Life in My Final Semester"
             date="March 2026"
             tag="Dev Log"
