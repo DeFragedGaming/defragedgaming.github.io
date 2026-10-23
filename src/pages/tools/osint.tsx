@@ -1,6 +1,6 @@
 import React from "react";
 import Layout from "@theme/Layout";
-import Link from "@docusaurus/Link";
+import ToolCard from "../../components/ToolDirectoryCard";
 
 type Tool = {
   name: string;
@@ -98,95 +98,6 @@ const osintTools: Tool[] = [
   },
 ];
 
-function ToolCard({ tool }: { tool: Tool }) {
-  return (
-    <div
-      style={{
-        background: "#111",
-        border: "1px solid #222",
-        borderRadius: "8px",
-        padding: "16px",
-        display: "flex",
-        flexDirection: "column",
-        gap: "8px",
-      }}
-    >
-      <h3 style={{ margin: 0 }}>{tool.name}</h3>
-      <p style={{ color: "#ccc", margin: 0 }}>{tool.description}</p>
-      <p style={{ color: "#aaa", fontSize: "0.9rem", marginTop: "4px" }}>
-        <strong>Why it’s useful:</strong> {tool.whyUseful}
-      </p>
-      <p style={{ color: "#aaa", fontSize: "0.85rem", marginTop: "4px" }}>
-        <strong>Difficulty:</strong> {tool.difficulty}
-      </p>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginTop: "4px" }}>
-        {tool.tags.map((tag) => (
-          <span
-            key={tag}
-            style={{
-              background: "#222",
-              padding: "3px 8px",
-              borderRadius: "4px",
-              fontSize: "0.75rem",
-              color: "#ccc",
-            }}
-          >
-            {tag}
-          </span>
-        ))}
-      </div>
-      <div style={{ display: "flex", gap: "8px", marginTop: "10px", flexWrap: "wrap" }}>
-        <Link
-          to={tool.url}
-          style={{
-            background: "#0af",
-            color: "#000",
-            padding: "6px 12px",
-            borderRadius: "4px",
-            fontSize: "0.85rem",
-            textDecoration: "none",
-            fontWeight: 600,
-          }}
-        >
-          Visit Tool
-        </Link>
-        {tool.docsUrl && (
-          <Link
-            to={tool.docsUrl}
-            style={{
-              background: "#0af",
-              color: "#000",
-              padding: "6px 12px",
-              borderRadius: "4px",
-              fontSize: "0.85rem",
-              textDecoration: "none",
-              fontWeight: 600,
-            }}
-          >
-            Docs
-          </Link>
-        )}
-        {tool.githubUrl && (
-          <Link
-            to={tool.githubUrl}
-            style={{
-              background: "#0af",
-              color: "#000",
-              padding: "6px 12px",
-              borderRadius: "4px",
-              fontSize: "0.85rem",
-              textDecoration: "none",
-              fontWeight: 600,
-            }}
-          >
-            GitHub
-          </Link>
-        )}
-      </div>
-    </div>
-  );
-}
-
 export default function OSINTPage() {
   return (
     <Layout
@@ -205,7 +116,7 @@ export default function OSINTPage() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+            gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 320px), 1fr))",
             gap: "16px",
           }}
         >

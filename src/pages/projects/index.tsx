@@ -1,139 +1,119 @@
 import React from "react";
-import Layout from "@theme/Layout";
 import Link from "@docusaurus/Link";
+import Layout from "@theme/Layout";
 import Head from "@docusaurus/Head";
+
+type Project = {
+  name: string;
+  description: string;
+  href?: string;
+  linkLabel?: string;
+  external?: boolean;
+  status?: string;
+};
+
+const projects: Project[] = [
+  {
+    name: "CyberTrace Terminal Game",
+    description:
+      "Interactive CyberTrace OS simulation. Being replaced with a new version; see CyberTrace: Signal Breach for updates.",
+    href: "/game",
+    linkLabel: "Launch",
+  },
+  {
+    name: "BlackSpire: Depths of the Core",
+    description:
+      "A dark-fantasy mining RPG prototype set in the cursed depths beneath the BlackSpire.",
+    href: "https://cybertrace.itch.io/blackspire-depths",
+    linkLabel: "Play on itch.io",
+    external: true,
+  },
+  {
+    name: "BlackSpire: Voxel of the Abyss",
+    description:
+      "Under active development: a dark voxel survival RPG set in procedurally generated environments.",
+    href: "https://cybertrace.itch.io/blackspire-voxel-of-the-abyss",
+    linkLabel: "View development updates",
+    external: true,
+  },
+  {
+    name: "CyberTrace: Signal Breach",
+    description: "Under active development.",
+    status: "Itch link coming soon",
+  },
+  {
+    name: "Untitled Project",
+    description: "Description coming soon.",
+    status: "No link yet",
+  },
+  {
+    name: "Untitled Project",
+    description: "Description coming soon.",
+    status: "No link yet",
+  },
+];
 
 export default function Projects() {
   return (
     <>
       <Head>
-        <title>Projects</title>
-        <meta name="description" content="CyberTrace Projects" />
+        <title>Projects | CyberTrace</title>
+        <meta
+          name="description"
+          content="Explore games and software projects from CyberTrace."
+        />
       </Head>
-      <Layout>
-        <div style={{ padding: "2rem", maxWidth: "960px", margin: "0 auto" }}>
-          <h1 style={{ color: "#e5e7eb" }}>Projects</h1>
-
-          {/* CyberTrace Terminal Game */}
-          <div
-            style={{
-              border: "1px solid #1f2937",
-              padding: "1.5rem",
-              background: "#0f172a",
-              marginTop: "1.5rem"
-            }}
-          >
-            <h3 style={{ margin: 0, color: "#e5e7eb" }}>CyberTrace Terminal Game</h3>
-            <p style={{ color: "#94a3b8" }}>Interactive CyberTrace OS simulation. Being replaced with a new version. See CyberTrace: Signal Breach for updates.</p>
-            <Link
-              to="/game"
-              style={{
-                color: "#38bdf8",
-                textDecoration: "none",
-                fontWeight: "bold"
-              }}
-            >
-              Launch
-            </Link>
-          </div>
-
-          {/* BlackSpire */}
-          <div
-            style={{
-              border: "1px solid #1f2937",
-              padding: "1.5rem",
-              background: "#0f172a",
-              marginTop: "1.5rem"
-            }}
-          >
-            <h3 style={{ margin: 0, color: "#e5e7eb" }}>BlackSpire: Depths of the Core</h3>
-            <p style={{ color: "#94a3b8" }}>
-              A dark‑fantasy mining RPG prototype set in the cursed depths beneath the BlackSpire.
+      <Layout title="Projects" description="Games and software projects from CyberTrace.">
+        <main className="mx-auto min-h-screen w-full max-w-6xl px-6 py-16 text-slate-200">
+          <header className="mb-10">
+            <span className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300">
+              CyberTrace
+            </span>
+            <h1 className="mt-3 text-4xl font-bold text-white">Projects</h1>
+            <p className="mt-3 max-w-2xl text-slate-400">
+              Games, experiments, and software in development.
             </p>
-            <a
-              href="https://cybertrace.itch.io/blackspire-depths"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                color: "#38bdf8",
-                textDecoration: "none",
-                fontWeight: "bold"
-              }}
-            >
-              Play on itch.io
-            </a>
-          </div>
+          </header>
 
-          {/* BlackSpire: Voxel of the Abyss */}
-          <div
-            style={{
-              border: "1px solid #1f2937",
-              padding: "1.5rem",
-              background: "#0f172a",
-              marginTop: "1.5rem"
-            }}
-          >
-            <h3 style={{ margin: 0, color: "#e5e7eb" }}>BlackSpire: Voxel of the Abyss</h3>
-            <p style={{ color: "#94a3b8" }}>Under active development. BlackSpire: Voxel of the Abyss is a dark Voxel survival RPG that revolves around procedurally generated environments that challenge your ability to move forward at every turn.</p>
-            <a
-              href="https://cybertrace.itch.io/blackspire-voxel-of-the-abyss"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                color: "#38bdf8",
-                textDecoration: "none",
-                fontWeight: "bold"
-              }}
-            >
-              Check out development updates on itch.io
-            </a>
-            <span style={{ color: "#475569", fontStyle: "italic" }}></span>
-          </div>
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {projects.map((project, index) => (
+              <article
+                key={`${project.name}-${index}`}
+                className="flex h-full flex-col rounded-xl border border-slate-800 bg-slate-900/70 p-6 transition duration-200 hover:border-cyan-500/40"
+              >
+                <h2 className="text-xl font-semibold text-cyan-300">{project.name}</h2>
+                <p className="mt-3 flex-1 leading-6 text-slate-400">
+                  {project.description}
+                </p>
 
-          {/* CyberTrace: Signal Breach */}
-          <div
-            style={{
-              border: "1px solid #1f2937",
-              padding: "1.5rem",
-              background: "#0f172a",
-              marginTop: "1.5rem"
-            }}
-          >
-            <h3 style={{ margin: 0, color: "#e5e7eb" }}>CyberTrace: Signal Breach</h3>
-            <p style={{ color: "#94a3b8" }}>Under active development.</p>
-            <span style={{ color: "#475569", fontStyle: "italic" }}>Itch Link coming soon</span>
+                {project.href ? (
+                  project.external ? (
+                    <a
+                      href={project.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-6 inline-flex w-fit items-center justify-center rounded-lg bg-cyan-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-cyan-400"
+                    >
+                      {project.linkLabel}
+                    </a>
+                  ) : (
+                    <Link
+                      to={project.href}
+                      className="mt-6 inline-flex w-fit items-center justify-center rounded-lg bg-cyan-500 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-cyan-400"
+                    >
+                      {project.linkLabel}
+                    </Link>
+                  )
+                ) : (
+                  <span className="mt-6 text-sm text-slate-500">
+                    {project.status}
+                  </span>
+                )}
+              </article>
+            ))}
           </div>
-
-          {/* Blank Project 3 */}
-          <div
-            style={{
-              border: "1px solid #1f2937",
-              padding: "1.5rem",
-              background: "#0f172a",
-              marginTop: "1.5rem"
-            }}
-          >
-            <h3 style={{ margin: 0, color: "#e5e7eb" }}>Untitled Project</h3>
-            <p style={{ color: "#94a3b8" }}>Description coming soon.</p>
-            <span style={{ color: "#475569", fontStyle: "italic" }}>No link yet</span>
-          </div>
-
-          {/* Blank Project 4 */}
-          <div
-            style={{
-              border: "1px solid #1f2937",
-              padding: "1.5rem",
-              background: "#0f172a",
-              marginTop: "1.5rem"
-            }}
-          >
-            <h3 style={{ margin: 0, color: "#e5e7eb" }}>Untitled Project</h3>
-            <p style={{ color: "#94a3b8" }}>Description coming soon.</p>
-            <span style={{ color: "#475569", fontStyle: "italic" }}>No link yet</span>
-          </div>
-        </div>
+        </main>
       </Layout>
     </>
   );
 }
-
