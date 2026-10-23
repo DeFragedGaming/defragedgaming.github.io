@@ -1,41 +1,158 @@
 ---
 id: intro
-title: Overview
+title: CyberTrace Documentation
 sidebar_label: Overview
+description: Start exploring CyberTrace documentation, tools, labs, and learning resources.
+hide_title: true
 ---
 
-import React from 'react';
+import Link from '@docusaurus/Link';
 
-<div className="w-full px-8 py-16 max-w-4xl mx-auto text-slate-200">
+<div className="mx-auto max-w-6xl px-4 py-8 text-slate-200 sm:px-6 sm:py-12">
+  <section className="relative overflow-hidden rounded-2xl border border-cyan-500/25 bg-slate-900/70 p-7 shadow-[0_0_32px_rgba(34,211,238,0.08)] sm:p-10">
+    <div
+      aria-hidden="true"
+      className="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full bg-cyan-500/10 blur-3xl"
+    />
+    <div className="relative max-w-3xl">
+      <span className="inline-flex rounded-full border border-cyan-500/40 bg-cyan-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300">
+        {"CyberTrace Knowledge Base"}
+      </span>
+      <h1 className="mt-5 text-4xl font-black tracking-tight text-white sm:text-5xl">
+        {"Learn by exploring. Build by doing."}
+      </h1>
+      <p className="mt-5 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">
+        {"CyberTrace is a collection of security projects, practical notes, interactive tools, and hands-on labs. Use this guide to find the right place to start, whether you’re researching a topic or ready to experiment."}
+      </p>
+      <div className="mt-8 flex flex-wrap gap-3">
+        <Link
+          to="/tools"
+          className="inline-flex items-center justify-center rounded-lg bg-cyan-500 px-5 py-3 text-sm font-semibold text-slate-950 no-underline transition hover:bg-cyan-400"
+        >
+          {"Explore the tools"}
+        </Link>
+        <Link
+          to="/labs"
+          className="inline-flex items-center justify-center rounded-lg border border-slate-700 bg-slate-800/80 px-5 py-3 text-sm font-semibold text-slate-200 no-underline transition hover:border-slate-500 hover:bg-slate-800"
+        >
+          {"Browse hands-on labs"}
+        </Link>
+      </div>
+    </div>
+  </section>
 
-  <h1 className="text-3xl font-semibold mb-6">CyberTrace Documentation</h1>
+  <section className="mt-12" aria-labelledby="start-here">
+    <div className="mb-6">
+      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300">
+        {"Explore CyberTrace"}
+      </p>
+      <h2 id="start-here" className="mt-2 text-2xl font-bold text-white sm:text-3xl">
+        {"Choose your path"}
+      </h2>
+      <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
+        {"Each section is designed for a different kind of exploration. Start with what you need and follow the links from there."}
+      </p>
+    </div>
 
-  <p className="mb-8 text-slate-300">
-    Welcome to the CyberTrace documentation hub.
-  </p>
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <Link
+        to="/projects"
+        className="group flex min-h-52 flex-col rounded-xl border border-slate-800 bg-slate-900/60 p-6 text-inherit no-underline transition duration-200 hover:-translate-y-0.5 hover:border-cyan-500/50 hover:bg-slate-900 hover:text-inherit hover:shadow-[0_0_20px_rgba(34,211,238,0.1)]"
+      >
+        <span className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300">{"Build"}</span>
+        <h3 className="mt-4 text-xl font-semibold text-slate-100 group-hover:text-cyan-200">
+          {"Projects"}
+        </h3>
+        <p className="mt-2 flex-1 text-sm leading-6 text-slate-400">
+          {"Discover the tools, experiments, and software projects being developed across CyberTrace."}
+        </p>
+        <span className="mt-5 text-sm font-semibold text-cyan-300">{"Browse project docs →"}</span>
+      </Link>
 
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <Link
+        to="/docs/writeups"
+        className="group flex min-h-52 flex-col rounded-xl border border-slate-800 bg-slate-900/60 p-6 text-inherit no-underline transition duration-200 hover:-translate-y-0.5 hover:border-cyan-500/50 hover:bg-slate-900 hover:text-inherit hover:shadow-[0_0_20px_rgba(34,211,238,0.1)]"
+      >
+        <span className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300">{"Learn"}</span>
+        <h3 className="mt-4 text-xl font-semibold text-slate-100 group-hover:text-cyan-200">
+          {"Writeups"}
+        </h3>
+        <p className="mt-2 flex-1 text-sm leading-6 text-slate-400">
+          {"Read cybersecurity research, walkthroughs, and practical learning material."}
+        </p>
+        <span className="mt-5 text-sm font-semibold text-cyan-300">{"Read the writeups →"}</span>
+      </Link>
 
-    <a href="/docs/projects/index" className="block p-6 bg-slate-900/40 border border-slate-800 rounded-lg hover:border-sky-500 transition">
-      <h2 className="text-xl font-semibold mb-2">Projects</h2>
-      <p className="text-slate-400">Platform components and major builds.</p>
-    </a>
+      <Link
+        to="/docs/notes"
+        className="group flex min-h-52 flex-col rounded-xl border border-slate-800 bg-slate-900/60 p-6 text-inherit no-underline transition duration-200 hover:-translate-y-0.5 hover:border-cyan-500/50 hover:bg-slate-900 hover:text-inherit hover:shadow-[0_0_20px_rgba(34,211,238,0.1)]"
+      >
+        <span className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300">{"Reference"}</span>
+        <h3 className="mt-4 text-xl font-semibold text-slate-100 group-hover:text-cyan-200">
+          {"Notes"}
+        </h3>
+        <p className="mt-2 flex-1 text-sm leading-6 text-slate-400">
+          {"Find concise references, methodologies, and study notes for security topics."}
+        </p>
+        <span className="mt-5 text-sm font-semibold text-cyan-300">{"Explore notes →"}</span>
+      </Link>
 
-    <a href="/docs/writeups/index" className="block p-6 bg-slate-900/40 border border-slate-800 rounded-lg hover:border-sky-500 transition">
-      <h2 className="text-xl font-semibold mb-2">Writeups</h2>
-      <p className="text-slate-400">Research notes and walkthroughs.</p>
-    </a>
+      <Link
+        to="/tools"
+        className="group flex min-h-52 flex-col rounded-xl border border-slate-800 bg-slate-900/60 p-6 text-inherit no-underline transition duration-200 hover:-translate-y-0.5 hover:border-cyan-500/50 hover:bg-slate-900 hover:text-inherit hover:shadow-[0_0_20px_rgba(34,211,238,0.1)]"
+      >
+        <span className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300">{"Explore"}</span>
+        <h3 className="mt-4 text-xl font-semibold text-slate-100 group-hover:text-cyan-200">
+          {"Tools"}
+        </h3>
+        <p className="mt-2 flex-1 text-sm leading-6 text-slate-400">
+          {"Use interactive CyberTrace utilities and discover curated security tools by category."}
+        </p>
+        <span className="mt-5 text-sm font-semibold text-cyan-300">{"Open the tools directory →"}</span>
+      </Link>
 
-    <a href="/docs/notes/index" className="block p-6 bg-slate-900/40 border border-slate-800 rounded-lg hover:border-sky-500 transition">
-      <h2 className="text-xl font-semibold mb-2">Notes</h2>
-      <p className="text-slate-400">Reference material and study notes.</p>
-    </a>
+      <Link
+        to="/labs"
+        className="group flex min-h-52 flex-col rounded-xl border border-slate-800 bg-slate-900/60 p-6 text-inherit no-underline transition duration-200 hover:-translate-y-0.5 hover:border-cyan-500/50 hover:bg-slate-900 hover:text-inherit hover:shadow-[0_0_20px_rgba(34,211,238,0.1)]"
+      >
+        <span className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300">{"Practice"}</span>
+        <h3 className="mt-4 text-xl font-semibold text-slate-100 group-hover:text-cyan-200">
+          {"Labs"}
+        </h3>
+        <p className="mt-2 flex-1 text-sm leading-6 text-slate-400">
+          {"Practice with interactive cybersecurity and networking exercises in guided environments."}
+        </p>
+        <span className="mt-5 text-sm font-semibold text-cyan-300">{"Choose a lab →"}</span>
+      </Link>
+    </div>
+  </section>
 
-    <a href="/tools" className="block p-6 bg-slate-900/40 border border-slate-800 rounded-lg hover:border-sky-500 transition">
-      <h2 className="text-xl font-semibold mb-2">Tools</h2>
-      <p className="text-slate-400">Interactive utilities and platform features.</p>
-    </a>
-
-  </div>
-
+  <section className="mt-12 rounded-xl border border-slate-800 bg-slate-900/50 p-6 sm:p-8" aria-labelledby="getting-started">
+    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300">
+      {"A simple workflow"}
+    </p>
+    <h2 id="getting-started" className="mt-2 text-2xl font-bold text-white">
+      {"From reading to doing"}
+    </h2>
+    <div className="mt-6 grid gap-6 md:grid-cols-3">
+      <div>
+        <span className="text-sm font-bold text-cyan-300">{"01 / Understand"}</span>
+        <p className="mt-2 text-sm leading-6 text-slate-400">
+          {"Start with a writeup or note to get context on a topic and its core concepts."}
+        </p>
+      </div>
+      <div>
+        <span className="text-sm font-bold text-cyan-300">{"02 / Experiment"}</span>
+        <p className="mt-2 text-sm leading-6 text-slate-400">
+          {"Use a tool to explore the concepts with practical examples and interactive workflows."}
+        </p>
+      </div>
+      <div>
+        <span className="text-sm font-bold text-cyan-300">{"03 / Practice"}</span>
+        <p className="mt-2 text-sm leading-6 text-slate-400">
+          {"Continue in a lab to apply what you learned in a guided environment."}
+        </p>
+      </div>
+    </div>
+  </section>
 </div>

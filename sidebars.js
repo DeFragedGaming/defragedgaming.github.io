@@ -7,9 +7,9 @@ const sidebars = {
     },
 
     {
-      type: 'category',
+      type: 'link',
       label: 'Projects',
-      items: ['projects/index'],
+      href: '/projects',
     },
 
     {
