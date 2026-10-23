@@ -16,6 +16,7 @@ export default function Navbar() {
     { label: "Projects", to: "/projects" },
     { label: "Labs", to: "/labs" },
     { label: "Notes", to: "/notes" },
+    { label: "Ghostline", to: "/ghostline" },
   ];
 
   const isActive = (path: string) => location.pathname.startsWith(path);
