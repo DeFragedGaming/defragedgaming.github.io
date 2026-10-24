@@ -1,608 +1,440 @@
-import React, { useState, useEffect, useRef } from "react";
-import "./bruteforceLab.css";
+import React, { FormEvent, KeyboardEvent, useEffect, useRef, useState } from "react";
 import Layout from "@theme/Layout";
+import "./bruteforceLab.css";
+
+type ObjectiveId =
+  | "alert"
+  | "logs"
+  | "source"
+  | "account"
+  | "classify"
+  | "flag"
+  | "block"
+  | "mfa"
+  | "report";
+
+type TerminalEntry = {
+  kind: "system" | "command" | "output" | "success" | "error";
+  text: string;
+};
+
+type Objective = {
+  id: ObjectiveId;
+  title: string;
+  detail: string;
+  command: string;
+};
+
+const objectives: Objective[] = [
+  { id: "alert", title: "Review the alert queue", detail: "Find the active authentication incident.", command: "alerts" },
+  { id: "logs", title: "Inspect the evidence", detail: "Load the event records for the incident.", command: "logs auth-204" },
+  { id: "source", title: "Investigate the source", detail: "Correlate failures by source address.", command: "analyze source 198.51.100.24" },
+  { id: "account", title: "Correlate account activity", detail: "Check the account with a successful login.", command: "analyze user j.smith" },
+  { id: "classify", title: "Classify the activity", detail: "Identify the authentication attack pattern.", command: "classify password-spray" },
+  { id: "flag", title: "Flag the affected account", detail: "Mark the account for immediate review.", command: "flag j.smith" },
+  { id: "block", title: "Contain the source", detail: "Simulate a temporary block for the suspicious source.", command: "block 198.51.100.24" },
+  { id: "mfa", title: "Harden the account", detail: "Require an additional verification factor.", command: "mfa j.smith" },
+  { id: "report", title: "Close the investigation", detail: "Generate the incident summary.", command: "report auth-204" },
+];
+
+const initialTranscript: TerminalEntry[] = [
+  { kind: "system", text: "CYBERTRACE SOC // TRAINING CONSOLE" },
+  { kind: "system", text: "Incident AUTH-204 is waiting for analyst review." },
+  { kind: "system", text: "Type help to see available commands. All data is fictional and local to this exercise." },
+];
+
+const simulatedLogs = [
+  "09:41:08Z  AUTH_FAIL  src=198.51.100.24  user=j.smith",
+  "09:41:13Z  AUTH_FAIL  src=198.51.100.24  user=m.chen",
+  "09:41:19Z  AUTH_FAIL  src=198.51.100.24  user=a.patel",
+  "09:41:25Z  AUTH_FAIL  src=198.51.100.24  user=r.jones",
+  "09:41:31Z  AUTH_FAIL  src=198.51.100.24  user=t.wilson",
+  "09:41:38Z  AUTH_FAIL  src=198.51.100.24  user=j.smith",
+  "09:41:44Z  AUTH_FAIL  src=198.51.100.24  user=m.chen",
+  "09:41:50Z  AUTH_FAIL  src=198.51.100.24  user=a.patel",
+  "09:42:02Z  AUTH_OK    src=203.0.113.17   user=j.smith",
+  "09:42:11Z  AUTH_FAIL  src=198.51.100.24  user=r.jones",
+];
+
+const objectiveIds = objectives.map(({ id }) => id);
 
 export default function BruteforceLab() {
-  const phases = [
-    "Reconnaissance",
-    "Probing",
-    "Brute-Force",
-    "Compromise",
-    "Post-Login Behavior",
-  ];
+  const [completed, setCompleted] = useState<ObjectiveId[]>([]);
+  const [transcript, setTranscript] = useState<TerminalEntry[]>(initialTranscript);
+  const [command, setCommand] = useState("");
+  const [finished, setFinished] = useState(false);
+  const [history, setHistory] = useState<string[]>([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
+  const terminalRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const phaseTeaching = {
-    Reconnaissance: {
-      desc: "The attacker is mapping the login surface and gathering public metadata.",
-      see: [
-        "Unusual user-agent strings",
-        "Repeated 404s from the same IP",
-        "Requests to non-existent admin pages",
-      ],
-      defend: [
-        "Enable rate limiting",
-        "Use a WAF to block scanners",
-        "Hide sensitive endpoints behind authentication",
-      ],
-    },
-    Probing: {
-      desc: "The attacker is testing endpoint behavior and response patterns.",
-      see: [
-        "Header anomalies",
-        "Odd timing patterns",
-        "Repeated OPTIONS/HEAD requests",
-      ],
-      defend: [
-        "Tighten WAF rules",
-        "Monitor timing anomalies",
-        "Alert on repeated probing",
-      ],
-    },
-    "Brute-Force": {
-      desc: "The attacker is attempting credential combinations at scale.",
-      see: [
-        "Rapid login attempts",
-        "Multiple failures from same IP",
-        "Strange username patterns",
-      ],
-      defend: [
-        "Enable account lockout",
-        "Use MFA",
-        "Throttle login attempts",
-      ],
-    },
-    Compromise: {
-      desc: "The attacker has gained access and is exploring the environment.",
-      see: [
-        "Unusual session creation",
-        "Suspicious navigation patterns",
-        "Privilege escalation attempts",
-      ],
-      defend: [
-        "Terminate sessions",
-        "Alert SOC",
-        "Force password resets",
-      ],
-    },
-    "Post-Login Behavior": {
-      desc: "The attacker is performing actions inside the account.",
-      see: [
-        "Data exfil indicators",
-        "Unusual API calls",
-        "Bulk downloads",
-      ],
-      defend: [
-        "Revoke tokens",
-        "Block IP",
-        "Begin incident response",
-      ],
-    },
-  };
+  const currentObjective = objectives.find(({ id }) => !completed.includes(id));
 
-  // Realistic operator-style sequences (per phase)
-  const reconSequence = [
-    {
-      cmd: `nmap -sV --reason login.ct-lab.local   # simulated service scan`,
-      out: `scanned 1 host, service: nginx 1.18 (simulated)`,
-    },
-    {
-      cmd: `nmap -Pn -sC api.ct-lab.local        # simulated script scan`,
-      out: `3 default scripts executed (simulated)`,
-    },
-    {
-      cmd: `whois ct-lab.local                   # simulated WHOIS lookup`,
-      out: `registry data retrieved (simulated)`,
-    },
-    {
-      cmd: `dig A ct-lab.local +trace            # simulated DNS trace`,
-      out: `authoritative servers enumerated (simulated)`,
-    },
-    {
-      cmd: `dig MX ct-lab.local                  # simulated MX query`,
-      out: `mail.ct-lab.local found (simulated)`,
-    },
-  ];
-
-  const probingSequence = [
-    {
-      cmd: `curl -I https://ct-lab.local/login   # simulated header check`,
-      out: `HTTP/1.1 200 OK, server: nginx (simulated)`,
-    },
-    {
-      cmd: `curl -X OPTIONS https://api.ct-lab.local/auth   # simulated CORS probe`,
-      out: `Allow: GET, POST (simulated)`,
-    },
-    {
-      cmd: `curl -A "ReconBot/1.0" https://ct-lab.local/    # simulated UA test`,
-      out: `response size: 14.2kb (simulated)`,
-    },
-    {
-      cmd: `curl -I https://ct-lab.local/admin   # simulated admin check`,
-      out: `HTTP/1.1 404 Not Found (simulated)`,
-    },
-  ];
-
-  const bruteSequence = [
-    {
-      cmd: `curl -X POST https://ct-lab.local/login -d "u=admin&p=Winter2024!"   # simulated attempt`,
-      out: `login failed (simulated)`,
-    },
-    {
-      cmd: `curl -X POST https://ct-lab.local/login -d "u=admin&p=Winter2025!"   # simulated attempt`,
-      out: `login failed (simulated)`,
-    },
-    {
-      cmd: `curl -X POST https://ct-lab.local/login -d "u=admin&p=Summer2024!"   # simulated attempt`,
-      out: `login failed (simulated)`,
-    },
-    {
-      cmd: `curl -X POST https://ct-lab.local/login -d "u=admin&p=Summer2025!"   # simulated attempt`,
-      out: `login failed (simulated)`,
-    },
-  ];
-
-  const compromiseSequence = [
-    {
-      cmd: `curl -b "session=simulated" https://ct-lab.local/account   # simulated session access`,
-      out: `account overview loaded (simulated)`,
-    },
-    {
-      cmd: `curl -b "session=simulated" https://ct-lab.local/profile   # simulated profile view`,
-      out: `profile data retrieved (simulated)`,
-    },
-    {
-      cmd: `curl -b "session=simulated" https://ct-lab.local/settings  # simulated settings access`,
-      out: `settings page loaded (simulated)`,
-    },
-  ];
-
-  const postSequence = [
-    {
-      cmd: `curl -b "session=simulated" https://ct-lab.local/export    # simulated data export`,
-      out: `export job queued (simulated)`,
-    },
-    {
-      cmd: `curl -b "session=simulated" https://ct-lab.local/download  # simulated bulk download`,
-      out: `download stream started (simulated)`,
-    },
-    {
-      cmd: `curl -b "session=simulated" https://ct-lab.local/api/logs  # simulated log access`,
-      out: `log entries retrieved (simulated)`,
-    },
-  ];
-
-  // SOC-style defender events per phase
-  const defenderRecon = [
-    `alert: unusual user-agent detected during surface scan`,
-    `event: repeated 404s from same IP during recon`,
-    `notice: scanner-like pattern on login endpoints`,
-  ];
-
-  const defenderProbing = [
-    `event: abnormal OPTIONS/HEAD request pattern`,
-    `notice: header anomalies detected on /login`,
-    `signal: timing irregularities on auth endpoints`,
-  ];
-
-  const defenderBrute = [
-    `alert: rapid login failures from single IP`,
-    `signal: rate-limit threshold approaching on /login`,
-    `event: suspicious username pattern detected`,
-  ];
-
-  const defenderCompromise = [
-    `alert: unusual session creation from new device`,
-    `event: navigation pattern inconsistent with user history`,
-    `notice: privilege escalation attempt detected`,
-  ];
-
-  const defenderPost = [
-    `alert: bulk download pattern detected`,
-    `signal: unusual API call volume`,
-    `event: potential data exfil indicators`,
-  ];
-
-  const defenderPhaseRisk = {
-    Reconnaissance: 4,
-    Probing: 6,
-    "Brute-Force": 12,
-    Compromise: 10,
-    "Post-Login Behavior": 8,
-  };
-
-  const [activePhase, setActivePhase] = useState("Reconnaissance");
-
-  // Per-phase step indexes (which command in the sequence)
-  const [reconStep, setReconStep] = useState(0);
-  const [probingStep, setProbingStep] = useState(0);
-  const [bruteStep, setBruteStep] = useState(0);
-  const [compromiseStep, setCompromiseStep] = useState(0);
-  const [postStep, setPostStep] = useState(0);
-
-  const [defReconStep, setDefReconStep] = useState(0);
-  const [defProbingStep, setDefProbingStep] = useState(0);
-  const [defBruteStep, setDefBruteStep] = useState(0);
-  const [defCompromiseStep, setDefCompromiseStep] = useState(0);
-  const [defPostStep, setDefPostStep] = useState(0);
-
-  // Typing engine state
-  const [typingStage, setTypingStage] = useState("command"); // "command" | "output"
-  const [cmdTyped, setCmdTyped] = useState(0);
-  const [outTyped, setOutTyped] = useState(0);
-
-  const [attackerFeed, setAttackerFeed] = useState([]);
-  const [defenderFeed, setDefenderFeed] = useState([]);
-  const [defenderRisk, setDefenderRisk] = useState(0);
-  const [running, setRunning] = useState(false);
-  const [winner, setWinner] = useState(null);
-
-  const attackerRef = useRef(null);
-  const defenderRef = useRef(null);
-
-  function getSequenceForPhase(phase) {
-    if (phase === "Reconnaissance") return reconSequence;
-    if (phase === "Probing") return probingSequence;
-    if (phase === "Brute-Force") return bruteSequence;
-    if (phase === "Compromise") return compromiseSequence;
-    return postSequence;
-  }
-
-  function getStepForPhase(phase) {
-    if (phase === "Reconnaissance") return reconStep;
-    if (phase === "Probing") return probingStep;
-    if (phase === "Brute-Force") return bruteStep;
-    if (phase === "Compromise") return compromiseStep;
-    return postStep;
-  }
-
-  function setStepForPhase(phase, value) {
-    if (phase === "Reconnaissance") return setReconStep(value);
-    if (phase === "Probing") return setProbingStep(value);
-    if (phase === "Brute-Force") return setBruteStep(value);
-    if (phase === "Compromise") return setCompromiseStep(value);
-    return setPostStep(value);
-  }
-
-  function getDefenderEventsForPhase(phase) {
-    if (phase === "Reconnaissance") return defenderRecon;
-    if (phase === "Probing") return defenderProbing;
-    if (phase === "Brute-Force") return defenderBrute;
-    if (phase === "Compromise") return defenderCompromise;
-    return defenderPost;
-  }
-
-  function getDefStepForPhase(phase) {
-    if (phase === "Reconnaissance") return defReconStep;
-    if (phase === "Probing") return defProbingStep;
-    if (phase === "Brute-Force") return defBruteStep;
-    if (phase === "Compromise") return defCompromiseStep;
-    return defPostStep;
-  }
-
-  function setDefStepForPhase(phase, value) {
-    if (phase === "Reconnaissance") return setDefReconStep(value);
-    if (phase === "Probing") return setDefProbingStep(value);
-    if (phase === "Brute-Force") return setDefBruteStep(value);
-    if (phase === "Compromise") return setDefCompromiseStep(value);
-    return setDefPostStep(value);
-  }
-
-  function getNextPhase(current) {
-    const idx = phases.indexOf(current);
-    if (idx >= 0 && idx < phases.length - 1) {
-      return phases[idx + 1];
-    }
-    return null;
-  }
-
-  function generateSummary(winnerSide) {
-    if (winnerSide === "attacker") {
-      return [
-        "Attacker Victory — Credential Compromise Achieved",
-        "Recon completed with low detection.",
-        "Probing produced only minor anomalies.",
-        "Defender risk stayed below threshold during brute-force.",
-        "Brute-force and post-login actions completed before containment.",
-        "Session takeover allowed post-login behavior (simulated).",
-      ];
-    }
-
-    return [
-      "Defender Victory — Attack Contained",
-      "Recon triggered multiple detection rules.",
-      "Probing produced abnormal header and timing patterns.",
-      "WAF and rate-limit rules escalated risk quickly.",
-      "Defender risk reached 100% before full compromise.",
-      "Attack was blocked before post-login behavior could complete.",
-    ];
-  }
-
-  function resetSimulation() {
-    setRunning(false);
-    setWinner(null);
-    setActivePhase("Reconnaissance");
-
-    setReconStep(0);
-    setProbingStep(0);
-    setBruteStep(0);
-    setCompromiseStep(0);
-    setPostStep(0);
-
-    setDefReconStep(0);
-    setDefProbingStep(0);
-    setDefBruteStep(0);
-    setDefCompromiseStep(0);
-    setDefPostStep(0);
-
-    setTypingStage("command");
-    setCmdTyped(0);
-    setOutTyped(0);
-
-    setAttackerFeed([]);
-    setDefenderFeed([]);
-    setDefenderRisk(0);
-  }
-
-  // Defender win condition
   useEffect(() => {
-    if (!winner && defenderRisk >= 100) {
-      setWinner("defender");
-      setRunning(false);
+    if (terminalRef.current) {
+      terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
     }
-  }, [defenderRisk, winner]);
+  }, [transcript]);
 
-  // Heavy hybrid typing engine
-  useEffect(() => {
-    if (!running || winner) return;
+  function addEntries(entries: TerminalEntry[]) {
+    setTranscript((current) => [...current, ...entries]);
+  }
 
-    const seq = getSequenceForPhase(activePhase);
-    const step = getStepForPhase(activePhase);
+  function completeObjective(id: ObjectiveId, message: string) {
+    setCompleted((current) => (current.includes(id) ? current : [...current, id]));
+    addEntries([{ kind: "success", text: `✓ ${message}` }]);
+  }
 
-    if (!seq || step >= seq.length) {
+  function processCommand(rawCommand: string) {
+    const input = rawCommand.trim().replace(/\s+/g, " ");
+    if (!input) return;
+
+    const normalized = input.toLowerCase();
+    const entries: TerminalEntry[] = [{ kind: "command", text: input }];
+    const addOutput = (text: string, kind: TerminalEntry["kind"] = "output") => {
+      entries.push({ kind, text });
+    };
+    const isDone = (id: ObjectiveId) => completed.includes(id);
+    const sourceAnalyzed = isDone("source");
+    const accountAnalyzed = isDone("account");
+    const isClassified = isDone("classify");
+    const isFlagged = isDone("flag");
+
+    if (normalized === "help") {
+      addOutput("AVAILABLE COMMANDS");
+      addOutput("  alerts                         List active SOC alerts");
+      addOutput("  logs auth-204                  View incident authentication events");
+      addOutput("  analyze source <address>       Summarize activity from a source");
+      addOutput("  analyze user <username>        Review an account's login activity");
+      addOutput("  classify password-spray        Record your incident classification");
+      addOutput("  flag <username>                Flag an account for review");
+      addOutput("  block <address>                Simulate a temporary source block");
+      addOutput("  mfa <username>                 Require MFA for an account");
+      addOutput("  report auth-204                Generate the incident report");
+      addOutput("  clear                          Clear terminal output");
+    } else if (normalized === "clear") {
+      setTranscript([]);
       return;
+    } else if (normalized === "alerts") {
+      if (isDone("alert")) {
+        addOutput("AUTH-204  HIGH  Unusual authentication failures  STATUS: INVESTIGATING");
+        addOutput("Source 198.51.100.24 generated repeated failures across several accounts.");
+      } else {
+        completeObjective("alert", "Alert AUTH-204 opened.");
+        addOutput("AUTH-204  HIGH  Unusual authentication failures  STATUS: OPEN");
+        addOutput("Review the incident event records next: logs auth-204");
+      }
+    } else if (normalized === "logs auth-204") {
+      if (!isDone("alert")) {
+        addOutput("Open the incident first with: alerts", "error");
+      } else if (!isDone("logs")) {
+        completeObjective("logs", "10 authentication events loaded.");
+        entries.push(...simulatedLogs.map((line) => ({ kind: "output" as const, text: line })));
+        addOutput("Look for repeated failures by source and any successful login.");
+      } else {
+        entries.push(...simulatedLogs.map((line) => ({ kind: "output" as const, text: line })));
+      }
+    } else if (normalized.startsWith("analyze source ")) {
+      const address = input.slice("analyze source ".length);
+      if (!isDone("logs")) {
+        addOutput("Load incident records first: logs auth-204", "error");
+      } else if (address !== "198.51.100.24") {
+        addOutput("No matching source in AUTH-204. Check the event log and try again.", "error");
+      } else if (!sourceAnalyzed) {
+        completeObjective("source", "Source analysis complete.");
+        addOutput("198.51.100.24  |  9 failed attempts  |  5 distinct accounts  |  63 seconds");
+        addOutput("Pattern: low-volume attempts distributed across multiple accounts.");
+        addOutput("Next, check the account with a successful login: analyze user j.smith");
+      } else {
+        addOutput("198.51.100.24  |  9 failed attempts  |  5 distinct accounts  |  63 seconds");
+      }
+    } else if (normalized.startsWith("analyze user ")) {
+      const username = input.slice("analyze user ".length);
+      if (!sourceAnalyzed) {
+        addOutput("Analyze the repeated source first: analyze source 198.51.100.24", "error");
+      } else if (username !== "j.smith") {
+        addOutput("No successful login requiring correlation found for that account.", "error");
+      } else if (!accountAnalyzed) {
+        completeObjective("account", "Account activity correlated.");
+        addOutput("j.smith  |  2 failures from 198.51.100.24");
+        addOutput("09:42:02Z  AUTH_OK  src=203.0.113.17  device=unrecognized");
+        addOutput("Successful login came from a different source and an unrecognized device.");
+        addOutput("Treat this as suspicious and continue investigating; do not assume it is confirmed compromise.");
+      } else {
+        addOutput("j.smith  |  successful login from 203.0.113.17  |  device=unrecognized");
+      }
+    } else if (normalized === "classify password-spray") {
+      if (!sourceAnalyzed || !accountAnalyzed) {
+        addOutput("Review both source and account activity before classifying the incident.", "error");
+      } else if (!isClassified) {
+        completeObjective("classify", "Incident classified as password spraying.");
+        addOutput("Classification recorded: PASSWORD SPRAYING (confidence: high).");
+        addOutput("Next: flag the suspiciously accessed account with flag j.smith");
+      } else {
+        addOutput("Incident classification is already recorded as PASSWORD SPRAYING.");
+      }
+    } else if (normalized.startsWith("flag ")) {
+      const username = input.slice("flag ".length);
+      if (!isClassified) {
+        addOutput("Classify the observed activity before flagging an account.", "error");
+      } else if (username !== "j.smith") {
+        addOutput("The account needing immediate review is j.smith, due to its unrecognized-device success.", "error");
+      } else if (!isFlagged) {
+        completeObjective("flag", "j.smith flagged for urgent review.");
+        addOutput("Account j.smith marked for identity verification and session review.");
+        addOutput("Contain the repeated source next: block 198.51.100.24");
+      } else {
+        addOutput("Account j.smith is already flagged for review.");
+      }
+    } else if (normalized.startsWith("block ")) {
+      const address = input.slice("block ".length);
+      if (!isFlagged) {
+        addOutput("Flag the account and verify the activity before containment.", "error");
+      } else if (address !== "198.51.100.24") {
+        addOutput("That source is not associated with the repeated failures in this incident.", "error");
+      } else if (!isDone("block")) {
+        completeObjective("block", "Temporary source block simulated.");
+        addOutput("Policy applied in simulation: 198.51.100.24 temporarily blocked.");
+        addOutput("Harden the flagged account next: mfa j.smith");
+      } else {
+        addOutput("198.51.100.24 is already temporarily blocked in this simulation.");
+      }
+    } else if (normalized.startsWith("mfa ")) {
+      const username = input.slice("mfa ".length);
+      if (!isDone("block")) {
+        addOutput("Contain the repeated source before updating account protections.", "error");
+      } else if (username !== "j.smith") {
+        addOutput("Use the account identified during investigation: mfa j.smith", "error");
+      } else if (!isDone("mfa")) {
+        completeObjective("mfa", "MFA requirement simulated for j.smith.");
+        addOutput("Account policy updated in simulation: MFA required for j.smith.");
+        addOutput("Review your work and close the case: report auth-204");
+      } else {
+        addOutput("MFA is already required for j.smith in this simulation.");
+      }
+    } else if (normalized === "report auth-204") {
+      if (!isDone("mfa")) {
+        addOutput("Complete the investigation, containment, and account hardening objectives first.", "error");
+      } else if (!finished) {
+        completeObjective("report", "Incident report generated.");
+        addOutput("AUTH-204  |  PASSWORD SPRAYING  |  CONTAINED");
+        addOutput("Source 198.51.100.24 temporarily blocked; j.smith flagged and MFA required.");
+        addOutput("Successful login from 203.0.113.17 remains under investigation.");
+        addOutput("Case closed for this exercise. Review the debrief below.");
+        setFinished(true);
+      } else {
+        addOutput("Incident report already generated. Reset the lab to run it again.");
+      }
+    } else {
+      addOutput(`Command not recognized: ${input}`, "error");
+      addOutput("Type help for supported SOC commands, or use the suggested command shown for your current objective.");
     }
 
-    const { cmd, out } = seq[step];
+    addEntries(entries);
+    setHistory((current) => [...current, input]);
+    setHistoryIndex(-1);
+    setCommand("");
+  }
 
-    const interval = setInterval(() => {
-      if (typingStage === "command") {
-        if (cmdTyped < cmd.length) {
-          setCmdTyped((v) => v + 1);
-        } else {
-          setTypingStage("output");
-        }
-      } else if (typingStage === "output") {
-        if (outTyped < out.length) {
-          setOutTyped((v) => v + 1);
-        } else {
-          // Command + output fully typed → commit to feed
-          setAttackerFeed((prev) => [
-            ...prev,
-            `$ ${cmd}`,
-            `→ ${out}`,
-          ]);
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    processCommand(command);
+  }
 
-          // Defender event + risk
-          const defEvents = getDefenderEventsForPhase(activePhase);
-          const defStep = getDefStepForPhase(activePhase);
-          const defEvent =
-            defEvents[defStep] || defEvents[defEvents.length - 1];
-
-          setDefenderFeed((prev) => [...prev, defEvent]);
-          setDefStepForPhase(
-            activePhase,
-            (defStep + 1) % defEvents.length
-          );
-
-          setDefenderRisk((prev) =>
-            Math.min(100, prev + (defenderPhaseRisk[activePhase] || 0))
-          );
-
-          // Scroll terminals
-          if (attackerRef.current) {
-            attackerRef.current.scrollTop =
-              attackerRef.current.scrollHeight;
-          }
-          if (defenderRef.current) {
-            defenderRef.current.scrollTop =
-              defenderRef.current.scrollHeight;
-          }
-
-          // Move to next step or next phase / win
-          const nextStep = step + 1;
-          if (nextStep < seq.length) {
-            setStepForPhase(activePhase, nextStep);
-            setTypingStage("command");
-            setCmdTyped(0);
-            setOutTyped(0);
-          } else {
-            // Phase completed
-            if (activePhase === "Post-Login Behavior") {
-              setWinner("attacker");
-              setRunning(false);
-            } else {
-              const nextPhase = getNextPhase(activePhase);
-              if (nextPhase) {
-                setActivePhase(nextPhase);
-                setStepForPhase(nextPhase, 0);
-                setTypingStage("command");
-                setCmdTyped(0);
-                setOutTyped(0);
-              }
-            }
-          }
-        }
+  function handleTerminalKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      if (history.length) {
+        const nextIndex = historyIndex < 0 ? history.length - 1 : Math.max(0, historyIndex - 1);
+        setHistoryIndex(nextIndex);
+        setCommand(history[nextIndex]);
       }
-    }, 60); // heavy hybrid feel
+    } else if (event.key === "ArrowDown") {
+      event.preventDefault();
+      if (historyIndex >= 0) {
+        const nextIndex = historyIndex + 1;
+        setHistoryIndex(nextIndex < history.length ? nextIndex : -1);
+        setCommand(nextIndex < history.length ? history[nextIndex] : "");
+      }
+    }
+  }
 
-    return () => clearInterval(interval);
-  }, [
-    running,
-    winner,
-    activePhase,
-    typingStage,
-    cmdTyped,
-    outTyped,
-    reconStep,
-    probingStep,
-    bruteStep,
-    compromiseStep,
-    postStep,
-  ]);
-
-  // Derived attacker progress from step/sequence length
-  const currentSeq = getSequenceForPhase(activePhase);
-  const currentStep = getStepForPhase(activePhase);
-  const attackerProgress =
-    currentSeq && currentSeq.length > 0
-      ? Math.min(100, (currentStep / currentSeq.length) * 100)
-      : 0;
-
-  // Current typing pair for display
-  const currentPair =
-    currentSeq && currentStep < currentSeq.length
-      ? currentSeq[currentStep]
-      : null;
+  function resetLab() {
+    setCompleted([]);
+    setTranscript(initialTranscript);
+    setCommand("");
+    setFinished(false);
+    setHistory([]);
+    setHistoryIndex(-1);
+    inputRef.current?.focus();
+  }
 
   return (
-    <Layout>
-      <div className="lab-container">
-        <header className="lab-header">
-          <div className="lab-title">Hybrid Brute-Force Simulator</div>
-          <div className="lab-status">LIVE · Client-side only</div>
-        </header>
-
-      <div className="phase-tabs">
-        {phases.map((p) => (
-          <div
-            key={p}
-            className={`phase-tab ${activePhase === p ? "active" : ""}`}
-          >
-            {p}
-          </div>
-        ))}
-      </div>
-
-      <div className="workspace">
-        <div className="terminal-panel attacker">
-          <div className="panel-header">
-            <span>Attacker</span>
-            <div className="progress-bar">
-              <div style={{ width: `${attackerProgress}%` }}></div>
+    <Layout
+      title="Authentication Attack Investigation"
+      description="A multi-step SOC investigation lab using a simulated analyst terminal and fictional authentication logs."
+    >
+      <main className="brute-lab">
+        <div className="brute-lab__container">
+          <header className="brute-hero">
+            <div className="brute-hero__copy">
+              <span className="brute-eyebrow">CYBERTRACE LABS / BLUE TEAM</span>
+              <h1>Authentication Attack Investigation</h1>
+              <p>
+                You’re on shift when an authentication alert lands in the SOC queue.
+                Investigate the activity, identify the pattern, and contain the risk
+                using the analyst terminal.
+              </p>
             </div>
+            <div className="brute-hero__status">
+              <span className="brute-status-dot" />
+              SIMULATED INCIDENT
+            </div>
+          </header>
+
+          <div className="brute-scenario-bar">
+            <div><span>CASE</span><strong>AUTH-204</strong></div>
+            <div><span>SEVERITY</span><strong className="brute-severity-text">HIGH</strong></div>
+            <div><span>ENVIRONMENT</span><strong>IDENTITY / SSO</strong></div>
+            <div><span>OBJECTIVES</span><strong>{completed.length} / {objectives.length}</strong></div>
           </div>
 
-          <div className="terminal-feed" ref={attackerRef}>
-            {attackerFeed.map((line, i) => (
-              <div key={i} className="terminal-line">
-                {line}
-              </div>
-            ))}
-
-            {currentPair && typingStage === "command" && (
-              <div className="terminal-line">
-                $ {currentPair.cmd.slice(0, cmdTyped)}
-                <span className="cursor">▌</span>
-              </div>
-            )}
-
-            {currentPair && typingStage === "output" && (
-              <>
-                <div className="terminal-line">
-                  $ {currentPair.cmd}
+          <div className="brute-workspace">
+            <section className="brute-panel brute-terminal-panel" aria-labelledby="terminal-title">
+              <div className="brute-panel__header">
+                <div>
+                  <span className="brute-eyebrow">ANALYST WORKSTATION</span>
+                  <h2 id="terminal-title">SOC investigation terminal</h2>
                 </div>
-                <div className="terminal-line">
-                  → {currentPair.out.slice(0, outTyped)}
-                  <span className="cursor">▌</span>
+                <span className="brute-terminal-status"><span />CONNECTED</span>
+              </div>
+
+              <div
+                className="brute-terminal"
+                ref={terminalRef}
+                role="log"
+                aria-label="SOC terminal output"
+                aria-live="polite"
+              >
+                {transcript.map((entry, index) => (
+                  <div className={`brute-terminal__line brute-terminal__line--${entry.kind}`} key={`${index}-${entry.text}`}>
+                    {entry.kind === "command" && <span className="brute-terminal__prompt">soc@cybertrace:~$ </span>}
+                    {entry.kind !== "command" && entry.kind !== "system" && <span className="brute-terminal__marker">{entry.kind === "error" ? "!" : entry.kind === "success" ? "✓" : "›"}</span>}
+                    <span>{entry.text}</span>
+                  </div>
+                ))}
+              </div>
+
+              <form className="brute-terminal__form" onSubmit={handleSubmit}>
+                <label className="brute-terminal__prompt" htmlFor="soc-command">soc@cybertrace:~$</label>
+                <input
+                  id="soc-command"
+                  ref={inputRef}
+                  autoComplete="off"
+                  autoCapitalize="none"
+                  spellCheck={false}
+                  value={command}
+                  onChange={(event) => setCommand(event.target.value)}
+                  onKeyDown={handleTerminalKeyDown}
+                  placeholder="Type a command…"
+                  aria-label="Enter a SOC command"
+                />
+                <button type="submit" disabled={!command.trim()}>Run</button>
+              </form>
+              <div className="brute-terminal__hint">Enter to run · ↑ / ↓ command history · <button type="button" onClick={() => processCommand("help")}>show help</button></div>
+            </section>
+
+            <aside className="brute-panel brute-objectives" aria-labelledby="objectives-title">
+              <div className="brute-panel__header">
+                <div>
+                  <span className="brute-eyebrow">INCIDENT WORKFLOW</span>
+                  <h2 id="objectives-title">Investigation objectives</h2>
                 </div>
-              </>
-            )}
-          </div>
-        </div>
-
-        <div className="terminal-panel defender">
-          <div className="panel-header">
-            <span>Defender</span>
-            <div className="progress-bar risk">
-              <div style={{ width: `${defenderRisk}%` }}></div>
-            </div>
-          </div>
-
-          <div className="terminal-feed" ref={defenderRef}>
-            {defenderFeed.map((line, i) => (
-              <div key={i} className="terminal-line">
-                {line}
+                <span className="brute-count">{completed.length}/{objectiveIds.length}</span>
               </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="events-panel">
-          <div className="events-title">Recent Events</div>
-          <div className="events-body">
-            {[...attackerFeed.slice(-10)].map((e, i) => (
-              <div key={i} className="event-line">
-                {e}
+              <div
+                className="brute-progress-track"
+                role="progressbar"
+                aria-label="Investigation progress"
+                aria-valuemin={0}
+                aria-valuemax={objectiveIds.length}
+                aria-valuenow={completed.length}
+              >
+                <span style={{ width: `${(completed.length / objectiveIds.length) * 100}%` }} />
               </div>
-            ))}
+              <ol className="brute-objective-list">
+                {objectives.map((objective, index) => {
+                  const isComplete = completed.includes(objective.id);
+                  const isCurrent = currentObjective?.id === objective.id;
+                  return (
+                    <li
+                      key={objective.id}
+                      className={`brute-objective${isComplete ? " brute-objective--complete" : ""}${isCurrent ? " brute-objective--current" : ""}`}
+                    >
+                      <span className="brute-objective__number">{isComplete ? "✓" : String(index + 1).padStart(2, "0")}</span>
+                      <span className="brute-objective__copy">
+                        <strong>{objective.title}</strong>
+                        <span>{objective.detail}</span>
+                        {!isComplete && (
+                          <code>{objective.command}</code>
+                        )}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ol>
+            </aside>
           </div>
-        </div>
-      </div>
 
-      <div className="teaching-panel">
-        <h3>{activePhase}</h3>
-        <p>{phaseTeaching[activePhase].desc}</p>
-
-        <div className="teach-section">
-          <strong>What you might see</strong>
-          <ul>
-            {phaseTeaching[activePhase].see.map((s, i) => (
-              <li key={i}>{s}</li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="teach-section">
-          <strong>How defenders respond</strong>
-          <ul>
-            {phaseTeaching[activePhase].defend.map((s, i) => (
-              <li key={i}>{s}</li>
-            ))}
-          </ul>
-        </div>
-      </div>
-
-      <div className="controls">
-        <button onClick={() => setRunning(true)} disabled={running || !!winner}>
-          Start Simulation
-        </button>
-        <button onClick={() => setRunning(false)} disabled={!running}>
-          Pause
-        </button>
-        <button onClick={resetSimulation}>Reset</button>
-      </div>
-
-      {winner && (
-        <div className="modal-overlay">
-          <div className="modal-box">
-            <h2 className="modal-title">
-              {winner === "attacker" ? "Attacker Victory" : "Defender Victory"}
-            </h2>
-
-            <div className="modal-summary">
-              {generateSummary(winner).map((line, i) => (
-                <p key={i}>{line}</p>
-              ))}
+          <section className="brute-panel brute-intel" aria-labelledby="intel-title">
+            <div className="brute-panel__header">
+              <div>
+                <span className="brute-eyebrow">CASE FILE</span>
+                <h2 id="intel-title">Incident briefing</h2>
+              </div>
+              <span className="brute-count">SIMULATED DATA</span>
             </div>
-
-            <div className="modal-buttons">
-              <button onClick={resetSimulation}>Run Again</button>
-              <button onClick={() => setWinner(null)}>Close</button>
+            <div className="brute-intel__grid">
+              <div>
+                <strong>What happened</strong>
+                <p>Several accounts received failed logins from one source over a short window. A successful login for one of those accounts came from a separate, unrecognized device.</p>
+              </div>
+              <div>
+                <strong>What you need to decide</strong>
+                <p>Determine whether the failures share a pattern, identify which account needs review, then apply scoped containment and account protection.</p>
+              </div>
+              <div>
+                <strong>Safety and scope</strong>
+                <p>This is a fictional, client-side SOC exercise. Commands only query the built-in sample data or simulate defensive actions; nothing is sent over the network.</p>
+              </div>
             </div>
-          </div>
+          </section>
+
+          {finished && (
+            <section className="brute-debrief" role="status" aria-live="polite">
+              <div>
+                <span className="brute-eyebrow">INCIDENT DEBRIEF</span>
+                <h2>Good work. The immediate risk is contained.</h2>
+                <p>
+                  The repeated failures across several accounts indicate password spraying.
+                  You flagged j.smith after correlating a success from an unrecognized device,
+                  temporarily blocked the source, and required MFA. In a real incident, continue
+                  validating the login with the account owner, revoke suspicious sessions,
+                  preserve logs, and follow your organization’s response process.
+                </p>
+              </div>
+              <button type="button" className="brute-button brute-button--secondary" onClick={resetLab}>
+                Run the scenario again
+              </button>
+            </section>
+          )}
+
+          <footer className="brute-footer">
+            <span>TRAINING ENVIRONMENT</span>
+            <span>Fictional logs · No network requests · No real credentials</span>
+          </footer>
         </div>
-      )}
-    </div>
+      </main>
     </Layout>
   );
 }
