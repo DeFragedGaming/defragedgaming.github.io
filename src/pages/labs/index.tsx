@@ -12,28 +12,41 @@ type LabCardProps = {
 
 function LabCard({ title, description, link, active = false }: LabCardProps) {
   return (
-    <div
-      className={`
-        p-6 rounded-xl border transition
-        ${active
-          ? "border-cyan-500/40 hover:border-cyan-400 hover:shadow-[0_0_15px_rgba(34,211,238,0.4)]"
-          : "border-slate-700 opacity-70"}
-        bg-slate-900/40
-      `}
+    <article
+      className={`group flex h-full flex-col rounded-xl border bg-slate-900/60 p-6 transition duration-200 ${
+        active
+          ? "border-cyan-500/25 hover:-translate-y-0.5 hover:border-cyan-400/60 hover:shadow-[0_0_20px_rgba(34,211,238,0.12)]"
+          : "border-slate-800 opacity-75"
+      }`}
     >
-      <h3 className="text-xl font-semibold mb-2 text-cyan-300">{title}</h3>
-      <p className="text-slate-400 mb-4">{description}</p>
+      <div className="mb-5 flex items-center justify-between gap-3">
+        <span className="grid h-10 w-10 place-items-center rounded-lg border border-cyan-500/25 bg-cyan-500/10 text-sm font-bold text-cyan-300">
+          {title.slice(0, 1)}
+        </span>
+        <span
+          className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] ${
+            active
+              ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
+              : "border-slate-700 bg-slate-800 text-slate-400"
+          }`}
+        >
+          {active ? "Available" : "Coming soon"}
+        </span>
+      </div>
+      <h2 className="text-xl font-semibold text-cyan-300">{title}</h2>
+      <p className="mt-3 mb-6 flex-1 text-sm leading-6 text-slate-400">{description}</p>
 
       {active && link ? (
-        <Link className="button button--primary" to={link}>
-          Start Lab
+        <Link
+          className="inline-flex w-fit items-center justify-center rounded-lg bg-cyan-500 px-4 py-2 text-sm font-semibold text-slate-950 no-underline transition hover:bg-cyan-400"
+          to={link}
+        >
+          Open lab <span aria-hidden="true" className="ml-2">→</span>
         </Link>
       ) : (
-        <span className="inline-block px-3 py-1 text-xs font-semibold rounded bg-slate-700 text-slate-300">
-          Coming Soon
-        </span>
+        <span className="text-sm font-medium text-slate-500">In development</span>
       )}
-    </div>
+    </article>
   );
 }
 
@@ -68,15 +81,15 @@ export default function LabsOverview() {
 
           <LabCard
             title="Network Builder Lab"
-            description="Interactive IT & Networking Basics lab. Build networks, configure devices, and validate connectivity."
+            description="Build a simulated router-switch-host topology, configure IPv4 interfaces, and test LAN connectivity with an interactive network CLI."
             link="/labs/network-builder"
             active
           />
 
           <LabCard
             title="Password Hashing Lab"
-            description="Explore hashing algorithms, salts, and secure password storage."
-            link="/tools/hash-playground"
+            description="Compare fast hashes with salted password hashing, verify a demo password, and review secure storage practices."
+            link="/labs/password-hashing"
             active
           />
 
@@ -92,7 +105,9 @@ export default function LabsOverview() {
 
           <LabCard
             title="DMZ & Firewall Rules Lab"
-            description="Build a DMZ, configure firewall rules, and validate secure access."
+            description="Harden a fictional perimeter policy with least-privilege rules, ordered evaluation, and simulated traffic checks."
+            link="/labs/dmz-firewall"
+            active
           />
 
           <LabCard

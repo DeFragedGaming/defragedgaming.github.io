@@ -1,4 +1,4 @@
-# 📖 DeFragedGaming Documentation & Blog
+# DeFragedGaming Documentation & Blog
 
 <div align="center">
 

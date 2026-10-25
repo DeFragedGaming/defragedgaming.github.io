@@ -1,587 +1,459 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Layout from "@theme/Layout";
+import styles from "./styles.module.css";
 
-function LeftPanel() {
-  const section = {
-    marginBottom: "1rem",
-    borderBottom: "1px solid #1f2937",
-    paddingBottom: "0.75rem"
-  };
+const starterDevices = [
+  {
+    name: "router1",
+    role: "router",
+    interfaces: {
+      eth0: { ip: "192.168.10.1/24", peer: { device: "switch1", iface: "eth0" } },
+      eth1: { ip: "192.168.20.1/24", peer: null },
+    },
+  },
+  {
+    name: "switch1",
+    role: "switch",
+    interfaces: {
+      eth0: { ip: null, peer: { device: "router1", iface: "eth0" } },
+      eth1: { ip: null, peer: { device: "host1", iface: "eth0" } },
+    },
+  },
+  {
+    name: "host1",
+    role: "host",
+    interfaces: {
+      eth0: { ip: "192.168.10.10/24", peer: { device: "switch1", iface: "eth1" } },
+    },
+  },
+];
 
-  const title = {
-    fontSize: "0.85rem",
-    fontWeight: 600,
-    color: "#e5e7eb",
-    marginBottom: "0.25rem"
-  };
+const starterLinks = [
+  { id: "router1:eth0<->switch1:eth0", a: { device: "router1", iface: "eth0" }, b: { device: "switch1", iface: "eth0" } },
+  { id: "switch1:eth1<->host1:eth0", a: { device: "switch1", iface: "eth1" }, b: { device: "host1", iface: "eth0" } },
+];
 
-  const item = {
-    fontSize: "0.8rem",
-    color: "#94a3b8",
-    marginBottom: "0.15rem"
-  };
+const starterCommands = [
+  "net add-device router1 router",
+  "net add-device switch1 switch",
+  "net add-device host1 host",
+  "net add-if router1 eth0",
+  "net add-if switch1 eth0",
+  "net add-if switch1 eth1",
+  "net add-if host1 eth0",
+  "net set-ip router1 eth0 192.168.10.1/24",
+  "net set-ip host1 eth0 192.168.10.10/24",
+  "net connect router1 eth0 switch1 eth0",
+  "net connect switch1 eth1 host1 eth0",
+];
 
-  return (
-    <div
-      style={{
-        width: "280px",
-        background: "#020617",
-        borderRight: "1px solid #1f2937",
-        color: "#e5e7eb",
-        padding: "1rem",
-        overflowY: "auto"
-      }}
-    >
-      <h2 style={{ marginBottom: "1rem", fontSize: "1rem" }}>
-        Network Builder Reference
-      </h2>
-
-      <div style={section}>
-        <div style={title}>Devices</div>
-        <div style={item}>net add-device &lt;name&gt; &lt;role&gt;</div>
-        <div style={item}>roles: router | switch | host</div>
-        <div style={item}>example: net add-device r1 router</div>
-      </div>
-
-      <div style={section}>
-        <div style={title}>Interfaces</div>
-        <div style={item}>net add-if &lt;device&gt; &lt;ifname&gt;</div>
-        <div style={item}>example: net add-if r1 eth0</div>
-        <div style={item}>net set-ip &lt;device&gt; &lt;ifname&gt; &lt;cidr&gt;</div>
-        <div style={item}>example: net set-ip r1 eth0 10.0.0.1/24</div>
-      </div>
-
-      <div style={section}>
-        <div style={title}>Links</div>
-        <div style={item}>net connect &lt;dev1&gt; &lt;if1&gt; &lt;dev2&gt; &lt;if2&gt;</div>
-        <div style={item}>example: net connect r1 eth0 s1 eth0</div>
-      </div>
-
-      <div style={section}>
-        <div style={title}>Inspection</div>
-        <div style={item}>net show devices</div>
-        <div style={item}>net show if &lt;device&gt;</div>
-        <div style={item}>example: net show if r1</div>
-      </div>
-
-      <div style={section}>
-        <div style={title}>Connectivity</div>
-        <div style={item}>net ping &lt;srcDevice&gt; &lt;dstIP&gt;</div>
-        <div style={item}>example: net ping r1 10.0.0.2</div>
-      </div>
-    </div>
-  );
+function isValidCidr(value) {
+  const match = value.match(/^(\d{1,3}\.){3}\d{1,3}\/(\d|[12]\d|3[0-2])$/);
+  if (!match) return false;
+  const address = value.split("/")[0].split(".");
+  return address.every((octet) => Number(octet) <= 255);
 }
 
-function TerminalPanel({ output, onCommand }) {
-  const [cmd, setCmd] = useState("");
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const trimmed = cmd.trim();
-    if (!trimmed) return;
-    onCommand(trimmed);
-    setCmd("");
-  };
-
-  return (
-    <div
-      style={{
-        flex: 1,
-        background: "#020617",
-        color: "#e5e7eb",
-        padding: "1rem",
-        display: "flex",
-        flexDirection: "column"
-      }}
-    >
-      <div
-        style={{
-          flex: 1,
-          overflowY: "auto",
-          fontFamily: "monospace",
-          fontSize: "0.85rem",
-          marginBottom: "0.75rem",
-          border: "1px solid #1f2937",
-          padding: "0.5rem",
-          background: "#020617"
-        }}
-      >
-        {output.length === 0 ? (
-          <div style={{ color: "#64748b" }}>net: ready for commands</div>
-        ) : (
-          output.map((line, i) => <div key={i}>{line}</div>)
-        )}
-      </div>
-      <form onSubmit={handleSubmit}>
-        <input
-          value={cmd}
-          onChange={(e) => setCmd(e.target.value)}
-          autoComplete="off"
-          spellCheck="false"
-          style={{
-            width: "100%",
-            padding: "0.6rem 0.75rem",
-            background: "#020617",
-            border: "1px solid #334155",
-            color: "#e5e7eb",
-            fontFamily: "monospace",
-            fontSize: "0.85rem"
-          }}
-        />
-      </form>
-    </div>
-  );
+function getInterface(device, name) {
+  return device?.interfaces?.[name];
 }
 
-function RightPanel({ lastResult }) {
-  return (
-    <div
-      style={{
-        width: "280px",
-        background: "#020617",
-        borderLeft: "1px solid #1f2937",
-        color: "#e5e7eb",
-        padding: "1rem",
-        display: "flex",
-        flexDirection: "column"
-      }}
-    >
-      <h2 style={{ marginBottom: "0.75rem", fontSize: "1rem" }}>
-        Command Result
-      </h2>
-      {lastResult ? (
-        <>
-          <div
-            style={{
-              fontSize: "0.85rem",
-              marginBottom: "0.5rem",
-              color: lastResult.ok ? "#4ade80" : "#f97373"
-            }}
-          >
-            {lastResult.ok ? "SUCCESS" : "FAIL"}
-          </div>
-          <div
-            style={{
-              fontFamily: "monospace",
-              fontSize: "0.8rem",
-              whiteSpace: "pre-wrap"
-            }}
-          >
-            {lastResult.message}
-          </div>
-        </>
-      ) : (
-        <div style={{ fontSize: "0.8rem", color: "#64748b" }}>
-          No command executed yet.
-        </div>
-      )}
-    </div>
-  );
+function ipv4ToNumber(address) {
+  return address.split(".").reduce((result, octet) => ((result << 8) | Number(octet)) >>> 0, 0);
 }
 
-function BottomPanel({ errors }) {
-  return (
-    <div
-      style={{
-        height: "140px",
-        background: "#020617",
-        borderTop: "1px solid #1f2937",
-        color: "#fca5a5",
-        padding: "0.75rem",
-        fontFamily: "monospace",
-        fontSize: "0.8rem",
-        overflowY: "auto"
-      }}
-    >
-      {errors.length === 0 ? (
-        <div style={{ color: "#64748b" }}>no errors</div>
-      ) : (
-        errors.map((e, i) => <div key={i}>{e}</div>)
-      )}
-    </div>
-  );
+function isSameSubnet(cidrA, cidrB) {
+  const [ipA, prefixA] = cidrA.split("/");
+  const [ipB, prefixB] = cidrB.split("/");
+  const prefix = Math.min(Number(prefixA), Number(prefixB));
+  const mask = prefix === 0 ? 0 : (0xffffffff << (32 - prefix)) >>> 0;
+  return (ipv4ToNumber(ipA) & mask) === (ipv4ToNumber(ipB) & mask);
+}
+
+function hasLayer2Path(source, destination, devices, links) {
+  const queue = [source];
+  const visited = new Set();
+  while (queue.length) {
+    const current = queue.shift();
+    if (current === destination) return true;
+    if (visited.has(current)) continue;
+    visited.add(current);
+    const currentDevice = devices.find((device) => device.name === current);
+    if (current !== source && currentDevice?.role !== "switch") continue;
+    links.forEach((link) => {
+      if (link.a.device === current && !visited.has(link.b.device)) queue.push(link.b.device);
+      if (link.b.device === current && !visited.has(link.a.device)) queue.push(link.a.device);
+    });
+  }
+  return false;
 }
 
 export default function NetworkBuilderPage() {
   const [devices, setDevices] = useState([]);
   const [links, setLinks] = useState([]);
-  const [terminalOutput, setTerminalOutput] = useState([]);
-  const [errors, setErrors] = useState([]);
+  const [transcript, setTranscript] = useState([
+    { kind: "system", text: "CYBERTRACE NETWORK LAB // LOCAL SIMULATION" },
+    { kind: "system", text: "Build a small LAN. Type help to see available commands." },
+  ]);
+  const [command, setCommand] = useState("");
+  const [errors, setErrors] = useState(0);
   const [lastResult, setLastResult] = useState(null);
+  const [history, setHistory] = useState([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
+  const terminalRef = useRef(null);
+  const inputRef = useRef(null);
 
-  const appendOutput = (line) =>
-    setTerminalOutput((prev) => [...prev, line]);
+  useEffect(() => {
+    if (terminalRef.current) terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
+  }, [transcript]);
 
-  const appendError = (line) =>
-    setErrors((prev) => [...prev, line]);
+  function write(lines, kind = "output") {
+    const normalized = Array.isArray(lines) ? lines : [lines];
+    setTranscript((current) => [
+      ...current,
+      ...normalized.map((text) => ({ kind, text })),
+    ]);
+  }
 
-  const findDevice = (name) =>
-    devices.find((d) => d.name === name);
+  function execute(rawCommand) {
+    const raw = rawCommand.trim().replace(/\s+/g, " ");
+    if (!raw) return;
+    const tokens = raw.split(" ");
+    const [root, sub, ...args] = tokens;
+    const normalized = raw.toLowerCase();
+    const result = (ok, message, extra = []) => {
+      const lines = [...extra, message];
+      write(`$ ${raw}`, "command");
+      write(lines, ok ? "output" : "error");
+      setLastResult({ ok, message });
+      if (!ok) setErrors((count) => count + 1);
+    };
+    const findDevice = (name) => devices.find((device) => device.name === name);
 
-  const updateDevice = (updated) =>
-    setDevices((prev) => prev.map((d) => (d.name === updated.name ? updated : d)));
-
-  const handleCommand = (raw) => {
-    appendOutput(`$ ${raw}`);
-    const tokens = raw.split(/\s+/);
-    if (tokens[0] !== "net") {
-      const msg = "command must start with 'net'";
-      appendError(msg);
-      setLastResult({ ok: false, message: msg });
-      return;
-    }
-
-    if (tokens.length === 1) {
-      const msg = "missing subcommand";
-      appendError(msg);
-      setLastResult({ ok: false, message: msg });
-      return;
-    }
-
-    const sub = tokens[1];
-
-    if (sub === "add-device") {
-      if (tokens.length !== 4) {
-        const msg = "usage: net add-device <name> <role>";
-        appendError(msg);
-        setLastResult({ ok: false, message: msg });
-        return;
-      }
-      const name = tokens[2];
-      const role = tokens[3];
-      if (!["router", "switch", "host"].includes(role)) {
-        const msg = "role must be router | switch | host";
-        appendError(msg);
-        setLastResult({ ok: false, message: msg });
-        return;
-      }
-      if (findDevice(name)) {
-        const msg = `device '${name}' already exists`;
-        appendError(msg);
-        setLastResult({ ok: false, message: msg });
-        return;
-      }
-      const dev = {
-        name,
-        role,
-        interfaces: {}
-      };
-      setDevices((prev) => [...prev, dev]);
-      const msg = `device added: ${name} (${role})`;
-      appendOutput(msg);
-      setLastResult({ ok: true, message: msg });
-      return;
-    }
-
-    if (sub === "add-if") {
-      if (tokens.length !== 4) {
-        const msg = "usage: net add-if <device> <ifname>";
-        appendError(msg);
-        setLastResult({ ok: false, message: msg });
-        return;
-      }
-      const devName = tokens[2];
-      const ifname = tokens[3];
-      const dev = findDevice(devName);
-      if (!dev) {
-        const msg = `device not found: ${devName}`;
-        appendError(msg);
-        setLastResult({ ok: false, message: msg });
-        return;
-      }
-      if (dev.interfaces[ifname]) {
-        const msg = `interface already exists: ${devName} ${ifname}`;
-        appendError(msg);
-        setLastResult({ ok: false, message: msg });
-        return;
-      }
-      const updated = {
-        ...dev,
-        interfaces: {
-          ...dev.interfaces,
-          [ifname]: { ip: null, peer: null }
-        }
-      };
-      updateDevice(updated);
-      const msg = `interface added: ${devName} ${ifname}`;
-      appendOutput(msg);
-      setLastResult({ ok: true, message: msg });
-      return;
-    }
-
-    if (sub === "set-ip") {
-      if (tokens.length !== 5) {
-        const msg = "usage: net set-ip <device> <ifname> <cidr>";
-        appendError(msg);
-        setLastResult({ ok: false, message: msg });
-        return;
-      }
-      const devName = tokens[2];
-      const ifname = tokens[3];
-      const cidr = tokens[4];
-      const dev = findDevice(devName);
-      if (!dev) {
-        const msg = `device not found: ${devName}`;
-        appendError(msg);
-        setLastResult({ ok: false, message: msg });
-        return;
-      }
-      const iface = dev.interfaces[ifname];
-      if (!iface) {
-        const msg = `interface not found: ${devName} ${ifname}`;
-        appendError(msg);
-        setLastResult({ ok: false, message: msg });
-        return;
-      }
-      const updated = {
-        ...dev,
-        interfaces: {
-          ...dev.interfaces,
-          [ifname]: { ...iface, ip: cidr }
-        }
-      };
-      updateDevice(updated);
-      const msg = `ip set: ${devName} ${ifname} ${cidr}`;
-      appendOutput(msg);
-      setLastResult({ ok: true, message: msg });
-      return;
-    }
-
-    if (sub === "connect") {
-      if (tokens.length !== 6) {
-        const msg = "usage: net connect <dev1> <if1> <dev2> <if2>";
-        appendError(msg);
-        setLastResult({ ok: false, message: msg });
-        return;
-      }
-      const d1 = tokens[2];
-      const i1 = tokens[3];
-      const d2 = tokens[4];
-      const i2 = tokens[5];
-
-      const dev1 = findDevice(d1);
-      const dev2 = findDevice(d2);
-      if (!dev1) {
-        const msg = `device not found: ${d1}`;
-        appendError(msg);
-        setLastResult({ ok: false, message: msg });
-        return;
-      }
-      if (!dev2) {
-        const msg = `device not found: ${d2}`;
-        appendError(msg);
-        setLastResult({ ok: false, message: msg });
-        return;
-      }
-      const if1 = dev1.interfaces[i1];
-      const if2 = dev2.interfaces[i2];
-      if (!if1) {
-        const msg = `interface not found: ${d1} ${i1}`;
-        appendError(msg);
-        setLastResult({ ok: false, message: msg });
-        return;
-      }
-      if (!if2) {
-        const msg = `interface not found: ${d2} ${i2}`;
-        appendError(msg);
-        setLastResult({ ok: false, message: msg });
-        return;
-      }
-
-      const linkId = `${d1}:${i1}<->${d2}:${i2}`;
-      if (links.find((l) => l.id === linkId)) {
-        const msg = `link already exists: ${linkId}`;
-        appendError(msg);
-        setLastResult({ ok: false, message: msg });
-        return;
-      }
-
-      const updated1 = {
-        ...dev1,
-        interfaces: {
-          ...dev1.interfaces,
-          [i1]: { ...if1, peer: { device: d2, iface: i2 } }
-        }
-      };
-      const updated2 = {
-        ...dev2,
-        interfaces: {
-          ...dev2.interfaces,
-          [i2]: { ...if2, peer: { device: d1, iface: i1 } }
-        }
-      };
-
-      setDevices((prev) =>
-        prev.map((d) =>
-          d.name === updated1.name ? updated1 : d.name === updated2.name ? updated2 : d
-        )
-      );
-      setLinks((prev) => [
-        ...prev,
-        { id: linkId, a: { device: d1, iface: i1 }, b: { device: d2, iface: i2 } }
+    if (normalized === "help") {
+      write(`$ ${raw}`, "command");
+      write([
+        "DEVICE COMMANDS",
+        "  net add-device <name> <router|switch|host>",
+        "  net add-if <device> <interface>",
+        "  net set-ip <device> <interface> <address/prefix>",
+        "  net connect <device> <interface> <device> <interface>",
+        "INSPECT AND TEST",
+        "  net show devices",
+        "  net show if <device>",
+        "  net ping <source-device> <destination-ip>",
+        "  net clear",
+        "Use Load starter topology to build a sample LAN, then inspect and test it.",
       ]);
-
-      const msg = `link created: ${d1} ${i1} <-> ${d2} ${i2}`;
-      appendOutput(msg);
-      setLastResult({ ok: true, message: msg });
+      setLastResult({ ok: true, message: "Command reference displayed." });
+      setCommand("");
       return;
     }
 
-    if (sub === "show") {
-      if (tokens.length < 3) {
-        const msg = "usage: net show devices | net show if <device>";
-        appendError(msg);
-        setLastResult({ ok: false, message: msg });
-        return;
-      }
-      const what = tokens[2];
-      if (what === "devices") {
-        if (devices.length === 0) {
-          const msg = "no devices";
-          appendOutput(msg);
-          setLastResult({ ok: true, message: msg });
-          return;
-        }
-        devices.forEach((d) => {
-          appendOutput(`${d.name}\t${d.role}`);
-        });
-        setLastResult({ ok: true, message: "listed devices" });
-        return;
-      }
-      if (what === "if") {
-        if (tokens.length !== 4) {
-          const msg = "usage: net show if <device>";
-          appendError(msg);
-          setLastResult({ ok: false, message: msg });
-          return;
-        }
-        const devName = tokens[3];
-        const dev = findDevice(devName);
-        if (!dev) {
-          const msg = `device not found: ${devName}`;
-          appendError(msg);
-          setLastResult({ ok: false, message: msg });
-          return;
-        }
-        const names = Object.keys(dev.interfaces);
-        if (names.length === 0) {
-          const msg = `no interfaces on ${devName}`;
-          appendOutput(msg);
-          setLastResult({ ok: true, message: msg });
-          return;
-        }
-        names.forEach((n) => {
-          const iface = dev.interfaces[n];
-          const ip = iface.ip || "-";
-          const peer = iface.peer
-            ? `${iface.peer.device}:${iface.peer.iface}`
-            : "-";
-          appendOutput(`${devName} ${n}\tip=${ip}\tpeer=${peer}`);
-        });
-        setLastResult({ ok: true, message: `listed interfaces for ${devName}` });
-        return;
-      }
-      const msg = `unknown show target: ${what}`;
-      appendError(msg);
-      setLastResult({ ok: false, message: msg });
+    if (normalized === "net clear") {
+      setTranscript([]);
+      setLastResult({ ok: true, message: "Terminal cleared." });
+      setCommand("");
       return;
     }
 
-    if (sub === "ping") {
-      if (tokens.length !== 4) {
-        const msg = "usage: net ping <srcDevice> <dstIP>";
-        appendError(msg);
-        setLastResult({ ok: false, message: msg });
-        return;
+    if (root !== "net") {
+      result(false, "Commands must start with 'net'. Type help for usage.");
+    } else if (sub === "add-device") {
+      const [name, role] = args;
+      if (args.length !== 2) result(false, "Usage: net add-device <name> <router|switch|host>");
+      else if (!/^[a-z][a-z0-9-]{0,14}$/i.test(name)) result(false, "Use a name of 1–15 letters, numbers, or hyphens; it must start with a letter.");
+      else if (!["router", "switch", "host"].includes(role)) result(false, "Role must be router, switch, or host.");
+      else if (findDevice(name)) result(false, `Device '${name}' already exists.`);
+      else {
+        setDevices((current) => [...current, { name, role, interfaces: {} }]);
+        result(true, `Added ${name} as a ${role}.`);
       }
-      const srcName = tokens[2];
-      const dstIp = tokens[3];
-      const src = findDevice(srcName);
-      if (!src) {
-        const msg = `device not found: ${srcName}`;
-        appendError(msg);
-        setLastResult({ ok: false, message: msg });
-        return;
+    } else if (sub === "add-if") {
+      const [name, ifaceName] = args;
+      const device = findDevice(name);
+      if (args.length !== 2) result(false, "Usage: net add-if <device> <interface>");
+      else if (!device) result(false, `Device '${name}' was not found.`);
+      else if (!/^[a-z][a-z0-9]{0,7}\d*$/i.test(ifaceName)) result(false, "Use a short interface name such as eth0 or lan1.");
+      else if (device.interfaces[ifaceName]) result(false, `Interface '${ifaceName}' already exists on ${name}.`);
+      else {
+        setDevices((current) => current.map((item) => item.name === name
+          ? { ...item, interfaces: { ...item.interfaces, [ifaceName]: { ip: null, peer: null } } }
+          : item));
+        result(true, `Added interface ${name}:${ifaceName}.`);
       }
-
-      let dstDevice = null;
-      devices.forEach((d) => {
-        Object.values(d.interfaces).forEach((iface) => {
-          if (iface.ip && iface.ip.split("/")[0] === dstIp) {
-            dstDevice = d;
-          }
-        });
-      });
-
-      if (!dstDevice) {
-        const msg = `no interface with ip ${dstIp}`;
-        appendError(msg);
-        setLastResult({ ok: false, message: msg });
-        return;
+    } else if (sub === "set-ip") {
+      const [name, ifaceName, cidr] = args;
+      const device = findDevice(name);
+      const iface = getInterface(device, ifaceName);
+      if (args.length !== 3) result(false, "Usage: net set-ip <device> <interface> <address/prefix>");
+      else if (!iface) result(false, `Interface '${ifaceName}' was not found on ${name}.`);
+      else if (!isValidCidr(cidr)) result(false, "Invalid IPv4 CIDR. Example: 192.168.10.10/24.");
+      else {
+        setDevices((current) => current.map((item) => item.name === name
+          ? { ...item, interfaces: { ...item.interfaces, [ifaceName]: { ...iface, ip: cidr } } }
+          : item));
+        result(true, `Set ${name}:${ifaceName} to ${cidr}.`);
       }
-
-      const directLink = links.find(
-        (l) =>
-          (l.a.device === srcName && l.b.device === dstDevice.name) ||
-          (l.b.device === srcName && l.a.device === dstDevice.name)
-      );
-
-      if (!directLink) {
-        const msg = `no direct link between ${srcName} and ${dstDevice.name}`;
-        appendError(msg);
-        setLastResult({ ok: false, message: msg });
-        return;
+    } else if (sub === "connect") {
+      const [deviceA, ifaceAName, deviceB, ifaceBName] = args;
+      const aDevice = findDevice(deviceA);
+      const bDevice = findDevice(deviceB);
+      const a = getInterface(aDevice, ifaceAName);
+      const b = getInterface(bDevice, ifaceBName);
+      if (args.length !== 4) result(false, "Usage: net connect <device> <interface> <device> <interface>");
+      else if (deviceA === deviceB) result(false, "Connect interfaces on two different devices.");
+      else if (!a || !b) result(false, "Both devices and interfaces must exist before connecting them.");
+      else if (a.peer || b.peer) result(false, "One of those interfaces is already connected. Disconnect it before reusing it.");
+      else {
+        const id = `${deviceA}:${ifaceAName}<->${deviceB}:${ifaceBName}`;
+        setDevices((current) => current.map((item) => {
+          if (item.name === deviceA) return { ...item, interfaces: { ...item.interfaces, [ifaceAName]: { ...a, peer: { device: deviceB, iface: ifaceBName } } } };
+          if (item.name === deviceB) return { ...item, interfaces: { ...item.interfaces, [ifaceBName]: { ...b, peer: { device: deviceA, iface: ifaceAName } } } };
+          return item;
+        }));
+        setLinks((current) => [...current, { id, a: { device: deviceA, iface: ifaceAName }, b: { device: deviceB, iface: ifaceBName } }]);
+        result(true, `Connected ${deviceA}:${ifaceAName} ↔ ${deviceB}:${ifaceBName}.`);
       }
-
-      appendOutput(`PING ${dstIp} from ${srcName}: success`);
-      setLastResult({
-        ok: true,
-        message: `ping ${dstIp} from ${srcName} -> ${dstDevice.name}: success`
-      });
-      return;
+    } else if (sub === "show" && args[0] === "devices") {
+      if (devices.length === 0) result(true, "No devices yet. Add one with net add-device <name> <role>.");
+      else result(true, `${devices.length} device(s) configured.`, devices.map((device) => `${device.name.padEnd(16)} ${device.role}  ${Object.keys(device.interfaces).length} interface(s)`));
+    } else if (sub === "show" && args[0] === "if") {
+      const name = args[1];
+      const device = findDevice(name);
+      if (args.length !== 2) result(false, "Usage: net show if <device>");
+      else if (!device) result(false, `Device '${name}' was not found.`);
+      else {
+        const interfaces = Object.entries(device.interfaces);
+        result(true, interfaces.length ? `Interfaces on ${name}:` : `No interfaces configured on ${name}.`, interfaces.map(([ifaceName, iface]) => `${ifaceName.padEnd(8)} ${iface.ip || "unassigned".padEnd(18)} peer=${iface.peer ? `${iface.peer.device}:${iface.peer.iface}` : "-"}`));
+      }
+    } else if (sub === "ping") {
+      const [sourceName, destinationIp] = args;
+      const source = findDevice(sourceName);
+      const destination = devices.find((device) => Object.values(device.interfaces).some((iface) => iface.ip?.split("/")[0] === destinationIp));
+      if (args.length !== 2) result(false, "Usage: net ping <source-device> <destination-ip>");
+      else if (!source) result(false, `Source device '${sourceName}' was not found.`);
+      else if (!destination) result(false, `No interface is configured with ${destinationIp}.`);
+      else if (source.name === destination.name) result(true, `Reply from ${destinationIp}: destination is local to ${sourceName}.`);
+      else {
+        const hasLink = hasLayer2Path(sourceName, destination.name, devices, links);
+        const sourceIfaces = Object.values(source.interfaces).filter((iface) => iface.ip && iface.peer);
+        const targetIface = Object.values(destination.interfaces).find((iface) => iface.ip?.split("/")[0] === destinationIp);
+        const sameSubnet = targetIface?.ip && sourceIfaces.some((sourceIface) => isSameSubnet(sourceIface.ip, targetIface.ip));
+        if (!hasLink) result(false, `No Layer 2 path connects ${sourceName} to ${destination.name}. Check the links in your topology.`);
+        else if (!sameSubnet) result(false, "Devices are linked but not in the same simulated IPv4 subnet; check their interface addresses and prefixes.");
+        else result(true, `Reply from ${destinationIp}: bytes=32 time<1ms TTL=64  (simulated)`);
+      }
+    } else {
+      result(false, `Unknown command '${sub || ""}'. Type help for available commands.`);
     }
+    setCommand("");
+    setHistory((current) => [...current, raw]);
+    setHistoryIndex(-1);
+  }
 
-    const msg = `unknown subcommand: ${sub}`;
-    appendError(msg);
-    setLastResult({ ok: false, message: msg });
-  };
+  function handleSubmit(event) {
+    event.preventDefault();
+    execute(command);
+  }
+
+  function handleKeyDown(event) {
+    if (event.key === "ArrowUp" && history.length) {
+      event.preventDefault();
+      const next = historyIndex < 0 ? history.length - 1 : Math.max(0, historyIndex - 1);
+      setHistoryIndex(next);
+      setCommand(history[next]);
+    } else if (event.key === "ArrowDown" && historyIndex >= 0) {
+      event.preventDefault();
+      const next = historyIndex + 1;
+      setHistoryIndex(next < history.length ? next : -1);
+      setCommand(next < history.length ? history[next] : "");
+    }
+  }
+
+  function loadStarterTopology() {
+    setDevices(starterDevices);
+    setLinks(starterLinks);
+    setLastResult({ ok: true, message: "Starter LAN loaded. Try net show devices, net show if host1, and net ping host1 192.168.10.1." });
+    write([
+      "$ lab load starter-lan",
+      "Loaded a router, switch, and host with two Ethernet links.",
+      "Host host1: 192.168.10.10/24  →  Router router1: 192.168.10.1/24",
+      "Try: net ping host1 192.168.10.1",
+    ]);
+  }
+
+  function resetLab() {
+    setDevices([]);
+    setLinks([]);
+    setTranscript([
+      { kind: "system", text: "CYBERTRACE NETWORK LAB // LOCAL SIMULATION" },
+      { kind: "system", text: "Workspace reset. Type help to see available commands." },
+    ]);
+    setErrors(0);
+    setLastResult(null);
+    setHistory([]);
+    setHistoryIndex(-1);
+    setCommand("");
+    inputRef.current?.focus();
+  }
 
   return (
-    <Layout title="Network Builder" description="CyberTrace Network Builder Lab">
-      <div
-        style={{
-          height: "calc(100vh - 60px)",
-          width: "100%",
-          background: "#020617",
-          display: "flex",
-          flexDirection: "column"
-        }}
-      >
-        <div
-          style={{
-            padding: "0.75rem 1.5rem",
-            borderBottom: "1px solid #1f2937",
-            background: "#020617",
-            color: "#e5e7eb",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            fontSize: "0.95rem"
-          }}
-        >
-          <div style={{ fontWeight: 600 }}>CyberTrace Labs</div>
-          <div style={{ color: "#64748b" }}>Network Builder — Linux‑style net CLI</div>
-        </div>
+    <Layout
+      title="Network Builder Lab"
+      description="Build and test a simulated network topology using an interactive workspace and network CLI."
+    >
+      <main className={styles.lab}>
+        <div className={styles.shell}>
+          <header className={styles.hero}>
+            <div>
+              <span className={styles.eyebrow}>CYBERTRACE LABS / NETWORKING</span>
+              <h1>Network Builder</h1>
+              <p>
+                Assemble a small network, configure interfaces, and test connectivity.
+                Use the terminal to build from scratch or load a starter LAN and explore
+                how its devices fit together.
+              </p>
+            </div>
+            <span className={styles.localBadge}><span /> SANDBOX</span>
+          </header>
 
-        <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
-          <LeftPanel />
-          <TerminalPanel output={terminalOutput} onCommand={handleCommand} />
-          <RightPanel lastResult={lastResult} />
-        </div>
+          <div className={styles.toolbar}>
+            <div className={styles.toolbarStatus}>
+              <span><strong>{devices.length}</strong> devices</span>
+              <span><strong>{links.length}</strong> links</span>
+              <span className={errors ? styles.warning : styles.ready}>
+                <strong>{errors}</strong> command errors
+              </span>
+            </div>
+            <div className={styles.toolbarActions}>
+              <button type="button" className={styles.primaryButton} onClick={loadStarterTopology}>Load starter LAN</button>
+              <button type="button" className={styles.secondaryButton} onClick={resetLab}>Reset workspace</button>
+            </div>
+          </div>
 
-        <BottomPanel errors={errors} />
-      </div>
+          <div className={styles.workspace}>
+            <section className={styles.panel} aria-labelledby="topology-title">
+              <div className={styles.panelHeader}>
+                <div><span className={styles.eyebrow}>LIVE WORKSPACE</span><h2 id="topology-title">Topology</h2></div>
+                <span className={styles.countBadge}>LOCAL SIMULATION</span>
+              </div>
+              {devices.length === 0 ? (
+                <div className={styles.emptyState}>
+                  <div className={styles.emptyIcon} aria-hidden="true">◇</div>
+                  <h3>Your workspace is ready</h3>
+                  <p>Add a router, switch, and host with terminal commands—or load a starter LAN to inspect a working example.</p>
+                  <button type="button" className={styles.textButton} onClick={loadStarterTopology}>Load the starter topology →</button>
+                </div>
+              ) : (
+                <div className={styles.topology}>
+                  <div className={styles.deviceGrid}>
+                    {devices.map((device) => (
+                      <article className={styles.deviceCard} key={device.name}>
+                        <div className={`${styles.deviceGlyph} ${styles[`glyph_${device.role}`]}`} aria-hidden="true">
+                          {device.role === "router" ? "R" : device.role === "switch" ? "S" : "H"}
+                        </div>
+                        <div className={styles.deviceHeading}>
+                          <strong>{device.name}</strong>
+                          <span>{device.role}</span>
+                        </div>
+                        <div className={styles.interfaces}>
+                          {Object.entries(device.interfaces).length === 0
+                            ? <span className={styles.unconfigured}>No interfaces configured</span>
+                            : Object.entries(device.interfaces).map(([name, iface]) => (
+                              <div className={styles.interfaceRow} key={name}>
+                                <span>{name}</span>
+                                <code>{iface.ip || "unassigned"}</code>
+                                <small>{iface.peer ? `↔ ${iface.peer.device}:${iface.peer.iface}` : "not connected"}</small>
+                              </div>
+                            ))}
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                  <div className={styles.linkSummary} aria-label="Network links">
+                    <strong>Physical links</strong>
+                    {links.length === 0 ? (
+                      <span>No links yet. Connect interfaces with <code>net connect</code>.</span>
+                    ) : links.map((link) => (
+                      <span key={link.id}>
+                        <code>{link.a.device}:{link.a.iface}</code>
+                        <b aria-hidden="true">⟷</b>
+                        <code>{link.b.device}:{link.b.iface}</code>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </section>
+
+            <aside className={styles.sideColumn}>
+              <section className={styles.panel} aria-labelledby="result-title">
+                <div className={styles.panelHeader}>
+                  <div><span className={styles.eyebrow}>LATEST COMMAND</span><h2 id="result-title">Command result</h2></div>
+                </div>
+                {lastResult ? (
+                  <div className={`${styles.resultBox} ${lastResult.ok ? styles.resultSuccess : styles.resultError}`}>
+                    <strong>{lastResult.ok ? "SUCCESS" : "CHECK COMMAND"}</strong>
+                    <p>{lastResult.message}</p>
+                  </div>
+                ) : (
+                  <p className={styles.muted}>Results and validation feedback appear here.</p>
+                )}
+              </section>
+              <section className={styles.panel} aria-labelledby="reference-title">
+                <div className={styles.panelHeader}>
+                <div><span className={styles.eyebrow}>COMMAND REFERENCE</span><h2 id="reference-title">Try the starter LAN</h2></div>
+                </div>
+                <ol className={styles.commandReference}>
+                <li><span>01</span><code>net show devices</code></li>
+                <li><span>02</span><code>net show if host1</code></li>
+                <li><span>03</span><code>net ping host1 192.168.10.1</code></li>
+                </ol>
+                <p className={styles.referenceNote}>Load the starter LAN above to try these commands, then reset it and build your own topology.</p>
+              </section>
+            </aside>
+          </div>
+
+          <section className={styles.terminalPanel} aria-labelledby="terminal-title">
+            <div className={styles.panelHeader}>
+              <div><span className={styles.eyebrow}>INTERACTIVE CLI</span><h2 id="terminal-title">Network terminal</h2></div>
+              <button type="button" className={styles.textButton} onClick={() => execute("help")}>Command help</button>
+            </div>
+            <div className={styles.terminal} ref={terminalRef} role="log" aria-label="Network terminal output" aria-live="polite">
+              {transcript.map((entry, index) => (
+                <div className={`${styles.terminalLine} ${styles[`line_${entry.kind}`]}`} key={`${index}-${entry.text}`}>
+                  {entry.kind === "command" && <span className={styles.prompt}>net@cybertrace:~$ </span>}
+                  {entry.kind !== "command" && entry.kind !== "system" && <span className={styles.marker}>{entry.kind === "error" ? "!" : "›"}</span>}
+                  <span>{entry.text}</span>
+                </div>
+              ))}
+            </div>
+            <form className={styles.commandForm} onSubmit={(event) => { event.preventDefault(); execute(command); }}>
+              <label className={styles.prompt} htmlFor="network-command">net@cybertrace:~$</label>
+              <input
+                id="network-command"
+                ref={inputRef}
+                value={command}
+                onChange={(event) => setCommand(event.target.value)}
+                onKeyDown={handleKeyDown}
+                autoComplete="off"
+                autoCapitalize="none"
+                spellCheck={false}
+                placeholder="Enter a network command…"
+                aria-label="Enter a network command"
+              />
+              <button type="submit" disabled={!command.trim()}>Run</button>
+            </form>
+            <p className={styles.terminalHint}>Enter to run · ↑ / ↓ command history · Commands affect this local simulation only.</p>
+          </section>
+
+          <footer className={styles.footer}>
+            <span>TRAINING SANDBOX</span>
+            <span>No external network access · Reset clears the workspace</span>
+          </footer>
+        </div>
+      </main>
     </Layout>
   );
 }
